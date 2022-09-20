@@ -52,7 +52,6 @@ impl<T: CodecField> BinarySerialize for T {
             return;
         }
 
-        println!("t: {}, f: {}", self.type_code(), self.field_code());
         // header
         if self.type_code() < 16 {
             if self.field_code() < 16 {

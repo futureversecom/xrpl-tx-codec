@@ -80,7 +80,8 @@ pub struct Payment {
 }
 
 impl Payment {
-    /// Create a new payment transaction
+    /// Create a new XRP payment transaction
+    /// Applies the global signing flags (see https://xrpl.org/transaction-common-fields.html#global-flags)
     pub fn new(
         account: [u8; 20],
         destination: [u8; 20],
@@ -111,49 +112,7 @@ impl Payment {
 
 #[cfg(test)]
 mod tests {
-    use super::{BinarySerialize, CodecToFields, Payment};
-
-    #[test]
-    fn serialize_payment_tx() {
-        let account = [1_u8; 20];
-        let destination = [2_u8; 20];
-        let amount = 5_000_000_u64; // 5 XRP
-        let nonce = 1_u32;
-        let fee = 1_000; // 1000 drops
-        let signing_pub_key = [1_u8; 33];
-        let mut payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
-
-        let expected_payment_json = r"#
-        {
-            TransactionType: 'Payment',
-            Flags: 2147483648,
-            Sequence: 1,
-            Amount: '5000000',
-            Fee: '1000',
-            SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
-            Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-            Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
-        }";
-
-        let buf_unsigned = payment.binary_serialize(true);
-        println!("{:?}", hex::encode(&buf_unsigned));
-        payment.attach_signature([7_u8; 65]);
-
-        let expected_payment_json = r"#
-        {
-            TransactionType: 'Payment',
-            Flags: 2147483648,
-            Sequence: 1,
-            Amount: '5000000',
-            Fee: '1000',
-            SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
-            TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
-            Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-            Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
-        }";
-        let buf_signed = payment.binary_serialize(false);
-        println!("{:?}", hex::encode(&buf_signed));
-    }
+    use super::{CodecToFields, Payment};
 
     #[test]
     fn canonical_field_order() {
