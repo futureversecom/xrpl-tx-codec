@@ -6,3 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 xrpl-codec-utils = { path = "../utils" }
+
+[dev-dependencies]
+hex = "*"
+xrpl-rust = { git = "https://github.com/sephynox/xrpl-rust", branch = "develop" }

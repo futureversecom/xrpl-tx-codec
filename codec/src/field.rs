@@ -28,6 +28,9 @@ impl From<TransactionTypeCode> for TransactionType {
 pub struct Fee(pub AmountType);
 
 #[derive(Field)]
+pub struct Flags(pub UInt32Type);
+
+#[derive(Field)]
 pub struct Sequence(pub UInt32Type);
 
 #[derive(Field, Default)]
@@ -49,19 +52,21 @@ impl<T: CodecField> BinarySerialize for T {
             return;
         }
 
+        println!("t: {}, f: {}", self.type_code(), self.field_code());
         // header
-        if self.field_code() < 16 {
-            if self.type_code() < 16 {
-                buf.push((self.type_code() & self.field_code() << 4) as u8);
+        if self.type_code() < 16 {
+            if self.field_code() < 16 {
+                buf.push(((self.type_code() << 4) | self.field_code()) as u8);
             } else {
-                buf.push(self.type_code() as u8);
+                buf.push((self.type_code() << 4) as u8);
                 buf.push(self.field_code() as u8);
             }
+        } else if self.type_code() >= 16 && self.field_code() < 16 {
+            buf.push(self.field_code() as u8);
+            buf.push(self.type_code() as u8);
         } else {
-            if self.type_code() >= 16 {
-                // field >= 16 & type >= 16
-                buf.push(0_u8);
-            }
+            // self.type_code() >= 16 && self.field_code() >= 16
+            buf.push(0_u8);
             buf.push(self.type_code() as u8);
             buf.push(self.field_code() as u8);
         }
@@ -143,5 +148,35 @@ pub enum TransactionTypeCode {
 impl TransactionTypeCode {
     pub fn code(self) -> u16 {
         self as u16
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::BlobType;
+
+    #[test]
+    fn serialize_signing_pub_key() {
+        let buf = SigningPubKey(BlobType(vec![1_u8; 65])).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_transaction_type() {
+        let tt: TransactionType = TransactionTypeCode::Payment.into();
+        let buf = tt.binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_account() {
+        let account = [1_u8; 20];
+        let buf = Account(AccountIdType(account)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_destination() {
+        let dest = [1_u8; 20];
+        let buf = Destination(AccountIdType(dest)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
     }
 }

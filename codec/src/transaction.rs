@@ -70,6 +70,7 @@ pub struct Payment {
     transaction_type: TransactionType,
     fee: Fee,
     sequence: Sequence,
+    flags: Flags,
     /// payment only
     amount: Amount,
     destination: Destination,
@@ -81,8 +82,8 @@ pub struct Payment {
 impl Payment {
     /// Create a new payment transaction
     pub fn new(
-        account: [u8; 32],
-        destination: [u8; 32],
+        account: [u8; 20],
+        destination: [u8; 20],
         amount: u64,
         nonce: u32,
         fee: u64,
@@ -93,6 +94,8 @@ impl Payment {
             transaction_type: TransactionTypeCode::Payment.into(),
             fee: Fee(AmountType(fee)),
             sequence: Sequence(UInt32Type(nonce)),
+            // https://xrpl.org/transaction-common-fields.html#global-flags
+            flags: Flags(UInt32Type(0x8000_0000_u32)),
             /// payment only
             amount: Amount(AmountType(amount)),
             destination: Destination(AccountIdType(destination)),
@@ -108,21 +111,71 @@ impl Payment {
 
 #[cfg(test)]
 mod tests {
-    use super::{BinarySerialize, Payment};
+    use super::{BinarySerialize, CodecToFields, Payment};
 
     #[test]
     fn serialize_payment_tx() {
-        let account = [1_u8; 32];
-        let destination = [2_u8; 32];
+        let account = [1_u8; 20];
+        let destination = [2_u8; 20];
         let amount = 5_000_000_u64; // 5 XRP
         let nonce = 1_u32;
         let fee = 1_000; // 1000 drops
         let signing_pub_key = [1_u8; 33];
         let mut payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
+
+        let expected_payment_json = r"#
+        {
+            TransactionType: 'Payment',
+            Flags: 2147483648,
+            Sequence: 1,
+            Amount: '5000000',
+            Fee: '1000',
+            SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+            Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+            Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+        }";
+
         let buf_unsigned = payment.binary_serialize(true);
-        println!("{:?}", buf_unsigned);
+        println!("{:?}", hex::encode(&buf_unsigned));
         payment.attach_signature([7_u8; 65]);
+
+        let expected_payment_json = r"#
+        {
+            TransactionType: 'Payment',
+            Flags: 2147483648,
+            Sequence: 1,
+            Amount: '5000000',
+            Fee: '1000',
+            SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+            TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+            Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+            Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+        }";
         let buf_signed = payment.binary_serialize(false);
-        println!("{:?}", buf_signed);
+        println!("{:?}", hex::encode(&buf_signed));
+    }
+
+    #[test]
+    fn canonical_field_order() {
+        let account = [1_u8; 20];
+        let destination = [2_u8; 20];
+        let amount = 5_000_000_u64; // 5 XRP
+        let nonce = 1_u32;
+        let fee = 1_000; // 1000 drops
+        let signing_pub_key = [1_u8; 33];
+        let payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
+
+        for chunk in payment.to_canonical_fields().chunks(2) {
+            match chunk {
+                &[f1, f2] => {
+                    assert!(
+                        f1.type_code() < f2.type_code()
+                            || f1.type_code() == f2.type_code()
+                                && f1.field_code() <= f2.field_code()
+                    );
+                }
+                _ => continue,
+            }
+        }
     }
 }

@@ -178,9 +178,9 @@ fn derive_proc_macro_impl_transaction(input: TokenStream) -> TokenStream {
                 let mut fields_ = [#fields];
                 // Sort in canonical order
                 fields_.sort_by(|a, b| {
-                    let field_order = a.field_code().cmp(&b.field_code());
+                    let field_order = a.type_code().cmp(&b.type_code());
                     if let std::cmp::Ordering::Equal = field_order {
-                        a.type_code().cmp(&b.type_code())
+                        a.field_code().cmp(&b.field_code())
                     } else {
                         field_order
                     }
