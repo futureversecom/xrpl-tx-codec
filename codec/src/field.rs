@@ -10,13 +10,13 @@ use crate::{
 
 // TODO: auto-generate the structs from definitions.json
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Account(pub AccountIdType);
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Destination(pub AccountIdType);
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct TransactionType(pub UInt16Type);
 impl From<TransactionTypeCode> for TransactionType {
     fn from(v: TransactionTypeCode) -> Self {
@@ -24,22 +24,22 @@ impl From<TransactionTypeCode> for TransactionType {
     }
 }
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Fee(pub AmountType);
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Flags(pub UInt32Type);
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Sequence(pub UInt32Type);
 
-#[derive(Field, Default)]
+#[derive(Field, Debug, Default)]
 pub struct SigningPubKey(pub BlobType);
 
-#[derive(Field)]
+#[derive(Field, Debug)]
 pub struct Amount(pub AmountType);
 
-#[derive(Field, Default)]
+#[derive(Field, Debug, Default)]
 pub struct TxnSignature(pub BlobType);
 
 impl<T: CodecField> BinarySerialize for T {

@@ -63,7 +63,7 @@ SigningPubKey 	String 	Blob 	The public key used to create this signature.
 */
 
 /// An XRP payment tx
-#[derive(Transaction)]
+#[derive(Transaction, Debug)]
 pub struct Payment {
     /// common tx fields
     account: Account,

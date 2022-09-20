@@ -4,11 +4,13 @@ use crate::traits::BinarySerialize;
 
 pub const ACCOUNT_ID_TYPE_CODE: u16 = 8;
 
+#[derive(Debug)]
 pub struct NotPresentType;
 impl BinarySerialize for NotPresentType {
     fn binary_serialize_to(&self, _buf: &mut Vec<u8>, _for_signing: bool) {}
 }
 
+#[derive(Debug)]
 pub struct UInt16Type(pub u16);
 
 impl BinarySerialize for UInt16Type {
@@ -17,6 +19,7 @@ impl BinarySerialize for UInt16Type {
     }
 }
 
+#[derive(Debug)]
 pub struct UInt32Type(pub u32);
 
 impl BinarySerialize for UInt32Type {
@@ -25,6 +28,7 @@ impl BinarySerialize for UInt32Type {
     }
 }
 
+#[derive(Debug)]
 pub struct UInt64Type(pub u64);
 
 impl BinarySerialize for UInt64Type {
@@ -33,6 +37,7 @@ impl BinarySerialize for UInt64Type {
     }
 }
 
+#[derive(Debug)]
 pub struct Hash160Type(pub [u8; 20]);
 impl BinarySerialize for Hash160Type {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -40,6 +45,7 @@ impl BinarySerialize for Hash160Type {
     }
 }
 
+#[derive(Debug)]
 pub struct Hash256Type(pub [u8; 32]);
 impl BinarySerialize for Hash256Type {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -47,6 +53,7 @@ impl BinarySerialize for Hash256Type {
     }
 }
 
+#[derive(Debug)]
 pub struct AccountIdType(pub [u8; 20]);
 impl BinarySerialize for AccountIdType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -54,7 +61,7 @@ impl BinarySerialize for AccountIdType {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct BlobType(pub Vec<u8>);
 
 impl BinarySerialize for BlobType {
@@ -65,6 +72,7 @@ impl BinarySerialize for BlobType {
 
 /// Current
 ///ly supporting native XRP amounts only
+#[derive(Debug)]
 pub struct AmountType(pub u64);
 impl BinarySerialize for AmountType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
