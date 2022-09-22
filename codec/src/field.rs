@@ -6,6 +6,7 @@ use xrpl_codec_utils::Field;
 use crate::{
     traits::{BinarySerialize, CodecField},
     types::{AccountIdType, AmountType, BlobType, UInt16Type, UInt32Type, ACCOUNT_ID_TYPE_CODE},
+    Vec,
 };
 
 // TODO: auto-generate the structs from definitions.json
@@ -154,6 +155,7 @@ impl TransactionTypeCode {
 mod tests {
     use super::*;
     use crate::types::BlobType;
+    use std::prelude::*;
 
     #[test]
     fn serialize_signing_pub_key() {

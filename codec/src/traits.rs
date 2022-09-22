@@ -1,5 +1,7 @@
 //! Codec traits
 
+use crate::Vec;
+
 /// A self-descriptive field type, wraps a primitive typed value for specific context
 /// e.g. Destination vs. Account are different fields but both AccountIds types
 pub trait CodecField: BinarySerialize {

@@ -1,7 +1,9 @@
 //! Utilities for XRPL codec
-//!
+#![no_std]
+extern crate alloc;
 extern crate proc_macro;
 
+use alloc::string::ToString;
 use hashbrown::HashMap;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
@@ -179,7 +181,7 @@ fn derive_proc_macro_impl_transaction(input: TokenStream) -> TokenStream {
                 // Sort in canonical order
                 fields_.sort_by(|a, b| {
                     let field_order = a.type_code().cmp(&b.type_code());
-                    if let std::cmp::Ordering::Equal = field_order {
+                    if let core::cmp::Ordering::Equal = field_order {
                         a.field_code().cmp(&b.field_code())
                     } else {
                         field_order

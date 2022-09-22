@@ -5,6 +5,7 @@ use crate::{
     field::*,
     traits::{BinarySerialize, CodecField, CodecToFields},
     types::{AccountIdType, AmountType, BlobType, UInt32Type},
+    Vec,
 };
 
 /*
