@@ -34,7 +34,14 @@ fn serialize_payment_tx() {
     let nonce = 1_u32;
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
-    let mut payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
+    let mut payment = Payment::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        fee,
+        Some(signing_pub_key),
+    );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',
@@ -75,7 +82,14 @@ fn serialize_payment_zero_values() {
     let nonce = 0_u32;
     let fee = 0; // 1000 drops
     let signing_pub_key = [1_u8; 33];
-    let payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
+    let payment = Payment::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        fee,
+        Some(signing_pub_key),
+    );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',

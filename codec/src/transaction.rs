@@ -81,14 +81,21 @@ pub struct Payment {
 
 impl Payment {
     /// Create a new XRP payment transaction
+    ///
     /// Applies the global signing flags (see https://xrpl.org/transaction-common-fields.html#global-flags)
+    ///
+    /// - `account` the sender's address
+    /// - `destination` the address to receive XRP
+    /// - `amount` the amount of XRP to receive in drops
+    /// - `nonce` the XRPL 'Sequence' # of `account`
+    /// - `fee` the max XRP fee in drops
     pub fn new(
         account: [u8; 20],
         destination: [u8; 20],
         amount: u64,
         nonce: u32,
         fee: u64,
-        signing_pub_key: [u8; 33],
+        signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
             account: Account(AccountIdType(account)),
@@ -100,7 +107,9 @@ impl Payment {
             /// payment only
             amount: Amount(AmountType(amount)),
             destination: Destination(AccountIdType(destination)),
-            signing_pub_key: SigningPubKey(BlobType(signing_pub_key.to_vec())),
+            signing_pub_key: signing_pub_key
+                .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
+                .unwrap_or_default(),
             txn_signature: Default::default(),
         }
     }
@@ -122,7 +131,14 @@ mod tests {
         let nonce = 1_u32;
         let fee = 1_000; // 1000 drops
         let signing_pub_key = [1_u8; 33];
-        let payment = Payment::new(account, destination, amount, nonce, fee, signing_pub_key);
+        let payment = Payment::new(
+            account,
+            destination,
+            amount,
+            nonce,
+            fee,
+            Some(signing_pub_key),
+        );
 
         for chunk in payment.to_canonical_fields().chunks(2) {
             match chunk {
