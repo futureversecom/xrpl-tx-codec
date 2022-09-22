@@ -8,8 +8,9 @@ proc-macro = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-lazy_static = "*"
-proc-macro2 = "*"
-quote = "*"
-syn = { version = "*", features = ["extra-traits"] }
+hashbrown = { version = "0.12" }
+lazy_static = { version =  "*", default-features = false }
+proc-macro2 = { version = "*", default-features = false }
+quote = { version = "*", default-features = false }
+syn = { version = "*", features = ["extra-traits"], default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

@@ -2,11 +2,11 @@
 //!
 extern crate proc_macro;
 
+use hashbrown::HashMap;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use serde_json::Value;
-use std::collections::HashMap;
 use syn::{parse_macro_input, Data, DeriveInput, Fields};
 
 /// XRPL codec definitions file
