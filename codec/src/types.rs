@@ -1,6 +1,6 @@
 //! XRPL codec primitive types
 
-use crate::traits::BinarySerialize;
+use crate::{traits::BinarySerialize, Vec};
 
 pub const ACCOUNT_ID_TYPE_CODE: u16 = 8;
 
