@@ -1,4 +1,5 @@
 //! XRPL transaction types
+use sha2::Digest;
 use xrpl_codec_utils::Transaction;
 
 use crate::{
@@ -117,6 +118,23 @@ impl Payment {
     /// Attach a signature to the transaction
     pub fn attach_signature(&mut self, signature: [u8; 65]) {
         self.txn_signature = TxnSignature(BlobType(signature.to_vec()));
+    }
+    /// Provide the tx hash for multi-signing with the given `public_key`
+    ///
+    /// for details see:
+    /// - https://github.com/XRPLF/rippled/blob/e32bc674aa2a035ea0f05fe43d2f301b203f1827/src/ripple/protocol/impl/Sign.cpp#L55-L62
+    /// - https://github.com/XRPLF/xrpl.js/blob/76b73e16a97e1a371261b462ee1a24f1c01dbb0c/packages/ripple-binary-codec/src/binary.ts#L58-L77
+    ///
+    /// Returns the 'SHA-512 half' of the tx ready for signing
+    pub fn multi_signing_digest(&self, public_key: [u8; 33]) -> [u8; 32] {
+        let digest: [u8; 64] = sha2::Sha512::new()
+            .chain(&[0x53, 0x4d, 0x54, 0x00])
+            .chain(self.binary_serialize(true))
+            .chain(crate::utils::secp256k1_public_key_to_account_id(public_key))
+            .finalize()
+            .into();
+
+        digest[..32].try_into().expect("it is a 32 byte digest")
     }
 }
 
