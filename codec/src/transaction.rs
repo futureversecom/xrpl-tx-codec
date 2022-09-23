@@ -129,9 +129,9 @@ impl Payment {
     pub fn multi_signing_digest(&self, public_key: [u8; 33]) -> [u8; 32] {
         // TODO: can be generalized to all `Transaction`
         let digest: [u8; 64] = sha2::Sha512::new()
-            .chain(&[0x53, 0x4d, 0x54, 0x00])
-            .chain(self.binary_serialize(true))
-            .chain(crate::utils::secp256k1_public_key_to_account_id(public_key))
+            .chain_update(&[0x53, 0x4d, 0x54, 0x00])
+            .chain_update(self.binary_serialize(true))
+            .chain_update(crate::utils::secp256k1_public_key_to_account_id(public_key))
             .finalize()
             .into();
 

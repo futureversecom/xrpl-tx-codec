@@ -1,5 +1,5 @@
 use ripemd::{Digest as _, Ripemd160};
-use sha2::{Digest as _, Sha256};
+use sha2::Sha256;
 
 /// Convert a 33 byte Secp256k1 pub key to an XRPL account ID
 ///
