@@ -128,14 +128,25 @@ impl Payment {
     /// Returns the 'SHA-512 half' of the tx ready for signing
     pub fn multi_signing_digest(&self, public_key: [u8; 33]) -> [u8; 32] {
         // TODO: can be generalized to all `Transaction`
-        let digest: [u8; 64] = sha2::Sha512::new()
-            .chain_update(&[0x53, 0x4d, 0x54, 0x00])
-            .chain_update(self.binary_serialize(true))
-            .chain_update(crate::utils::secp256k1_public_key_to_account_id(public_key))
-            .finalize()
-            .into();
-
+        let digest: [u8; 64] =
+            sha2::Sha512::digest(self.encode_for_multi_signing(public_key)).into();
         digest[..32].try_into().expect("it is a 32 byte digest")
+    }
+    /// Encode the tx for multi-signing (w/o hashing)
+    ///
+    /// for details see:
+    /// - https://github.com/XRPLF/rippled/blob/e32bc674aa2a035ea0f05fe43d2f301b203f1827/src/ripple/protocol/impl/Sign.cpp#L55-L62
+    /// - https://github.com/XRPLF/xrpl.js/blob/76b73e16a97e1a371261b462ee1a24f1c01dbb0c/packages/ripple-binary-codec/src/binary.ts#L58-L77
+    ///
+    /// Returns the encoded tx
+    pub fn encode_for_multi_signing(&self, public_key: [u8; 33]) -> Vec<u8> {
+        [
+            [0x53, 0x4d, 0x54, 0x00].as_slice(),
+            self.binary_serialize(true).as_slice(),
+            crate::utils::secp256k1_public_key_to_account_id(public_key).as_slice(),
+        ]
+        .concat()
+        .to_vec()
     }
 }
 
