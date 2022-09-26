@@ -42,7 +42,7 @@ pub fn encode_for_multi_signing(tx: &impl BinarySerialize, public_key: [u8; 33])
 /// `public_key` the secp256k1 public key that will sign the digest
 ///
 /// Returns the tx digest ready for signing
-pub fn digest_for_multi_signing_pre(tx_data: &[u8], public_key: [u8; 33]) -> Vec<u8> {
+pub fn digest_for_multi_signing_pre(tx_data: &[u8], public_key: [u8; 33]) -> [u8; 32] {
     let tx_data = [
         &[0x53, 0x4d, 0x54, 0x00],
         tx_data,
