@@ -147,7 +147,10 @@ fn encode_for_multi_signing() {
 
     assert_eq!(
         xrpl_js_output,
-        hex::encode(&payment.encode_for_multi_signing(signing_pub_key)),
+        hex::encode(&xrpl_codec::utils::encode_for_multi_signing(
+            &payment,
+            signing_pub_key
+        )),
     );
 }
 
