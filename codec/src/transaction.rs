@@ -120,6 +120,17 @@ impl Payment {
     }
 }
 
+/// An XRP SignerListSet tx
+#[derive(Transaction, Debug)]
+pub struct SignerListSet {
+    account: Account,
+    transaction_type: TransactionType,
+    fee: Fee,
+    flags: Flags,
+    SignerQuorum: u32,
+    SignerEntries: Vec<SignerEntry>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::{CodecToFields, Payment};

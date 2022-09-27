@@ -43,6 +43,12 @@ pub struct Amount(pub AmountType);
 #[derive(Field, Debug, Default)]
 pub struct TxnSignature(pub BlobType);
 
+#[derive(Field, Debug, Default)]
+pub struct SignerEntry {
+    Account: Account,
+    SignerWeight: u32,
+}
+
 impl<T: CodecField> BinarySerialize for T {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, for_signing: bool) {
         if !self.is_serialized() {
