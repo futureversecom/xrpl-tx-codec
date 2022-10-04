@@ -1,6 +1,10 @@
 //! XRPL codec primitive types
 
-use crate::{traits::BinarySerialize, Vec};
+use crate::{
+    traits::{ BinarySerialize},
+    Vec,
+};
+use crate::field::{Account, SignerWeight};
 
 pub const ACCOUNT_ID_TYPE_CODE: u16 = 8;
 
@@ -78,5 +82,61 @@ impl BinarySerialize for AmountType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
         // https://xrpl.org/serialization.html#amount-fields
         buf.extend_from_slice((self.0 | 0x4000000000000000).to_be_bytes().as_slice());
+    }
+}
+
+// #[derive(Debug)]
+// pub struct STObjectType<T>(pub T);
+// impl<T: BinarySerialize + CodecToFields> BinarySerialize for STObjectType<T> {
+//     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
+//         // Iterate over the canonical fields and do their serialize
+//         for f in self.0.to_canonical_fields().iter_mut() {
+//             f.binary_serialize_to(buf, _for_signing);
+//         }
+//
+//         // Append the array end here. Ref -> https://xrpl.org/serialization.html#object-fields
+//         buf.push(0xe1);
+//     }
+// }
+
+#[derive(Debug)]
+pub struct SignerEntryType(pub Account, pub SignerWeight);
+impl BinarySerialize for SignerEntryType {
+    fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
+        // call in canonical order
+        self.1.binary_serialize_to(buf, _for_signing);
+        self.0.binary_serialize_to(buf, _for_signing);
+
+        // Append the Object end here. Ref -> https://xrpl.org/serialization.html#object-fields
+        buf.push(0xe1);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::field::{SignerEntry, SignerWeight, Account};
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_SignerEntryType() {
+        let signer_entry_type = SignerEntryType(Account(AccountIdType([1_u8; 20])),
+                                             SignerWeight(UInt16Type(1_u16)));
+        let buf = signer_entry_type.binary_serialize(true);
+        // let signer_entry_field_id: u8 = 0xEB; // Typecode(14) | FieldCode(11) = 0xEB
+        let account_field_id: u8 = 0x81; // Typecode(8) | Fieldcode(1) = 0x81(129)
+        let signer_weight_field_id: u8 = 0x13; // Typecode(1) | Fieldcode(3) = 0x13(19)
+        let account_field_vl: u8 = 0x14; // https://xrpl.org/serialization.html#accountid-fields
+        let st_object_end: u8 = 0xe1; // https://xrpl.org/serialization.html#object-fields
+        // construct expected buffer
+        let mut expected_buf = Vec::<u8>::default();
+        expected_buf.extend_from_slice(&[signer_weight_field_id]); // SignerWeight comes first in the canonical order
+        expected_buf.extend_from_slice( &1_u16.to_be_bytes());
+        expected_buf.extend_from_slice(&[account_field_id]);
+        expected_buf.extend_from_slice(&[account_field_vl]);
+        expected_buf.extend_from_slice( &[1_u8; 20]);
+        expected_buf.extend_from_slice(&[st_object_end]);
+
+        assert_eq!(buf, expected_buf);
     }
 }
