@@ -123,12 +123,17 @@ impl Payment {
 /// An XRP SignerListSet tx
 #[derive(Transaction, Debug)]
 pub struct SignerListSet {
+    /// common tx fields
     account: Account,
     transaction_type: TransactionType,
     fee: Fee,
     flags: Flags,
-    SignerQuorum: u32,
-    SignerEntries: Vec<SignerEntry>,
+    /// SignerListSet
+    signer_quorum: SignerQuorum,
+    signer_entries: SignerEntries,
+    /// set when signing
+    signing_pub_key: SigningPubKey,
+    txn_signature: TxnSignature,
 }
 
 #[cfg(test)]
@@ -136,7 +141,8 @@ mod tests {
     use super::{CodecToFields, Payment};
 
     #[test]
-    fn canonical_field_order() {
+    #[allow(non_snake_case)]
+    fn test_Payment_canonical_field_order() {
         let account = [1_u8; 20];
         let destination = [2_u8; 20];
         let amount = 5_000_000_u64; // 5 XRP
