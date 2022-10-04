@@ -12,13 +12,13 @@ use crate::{
 
 // TODO: auto-generate the structs from definitions.json
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Account(pub AccountIdType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Destination(pub AccountIdType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct TransactionType(pub UInt16Type);
 impl From<TransactionTypeCode> for TransactionType {
     fn from(v: TransactionTypeCode) -> Self {
@@ -26,34 +26,34 @@ impl From<TransactionTypeCode> for TransactionType {
     }
 }
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Fee(pub AmountType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Flags(pub UInt32Type);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Sequence(pub UInt32Type);
 
 #[derive(Field, Debug, Default)]
 pub struct SigningPubKey(pub BlobType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct Amount(pub AmountType);
 
 #[derive(Field, Debug, Default)]
 pub struct TxnSignature(pub BlobType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct SignerQuorum(pub UInt32Type);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct SignerWeight(pub UInt16Type);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct SignerEntry(pub SignerEntryType);
 
-#[derive(Field, Debug)]
+#[derive(Field, Debug, Clone)]
 pub struct SignerEntries(pub STArrayType<SignerEntry>);
 
 impl<T: CodecField> BinarySerialize for T {

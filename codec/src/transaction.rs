@@ -151,7 +151,7 @@ impl SignerListSet {
         account: [u8; 20],
         fee: u64,
         signer_quorum: u32,
-        signer_entries: Vec::<SignerEntry>,
+        signer_entries: Vec<SignerEntry>,
         signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
@@ -160,7 +160,6 @@ impl SignerListSet {
             fee: Fee(AmountType(fee)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
-            /// payment only
             signer_quorum: SignerQuorum(UInt32Type(signer_quorum)),
             signer_entries: SignerEntries(STArrayType(signer_entries)),
             signing_pub_key: signing_pub_key
@@ -177,9 +176,10 @@ impl SignerListSet {
 
 #[cfg(test)]
 mod tests {
+    use alloc::vec::Vec;
     use crate::field::{Account, SignerEntry, SignerWeight};
     use crate::types::{AccountIdType, SignerEntryType, UInt16Type};
-    use super::{CodecToFields, Payment, SignerListSet};
+    use super::*;
 
     #[test]
     #[allow(non_snake_case)]
@@ -245,5 +245,40 @@ mod tests {
                 _ => continue,
             }
         }
+    }
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_SignerListSet_serialize() {
+        let account = [1_u8; 20];
+        let fee = 1_000; // 1000 drops
+        let signing_pub_key = [1_u8; 33];
+        let signer_quorum  = 3_u32;
+        let mut signer_entries = Vec::<SignerEntry>::default();
+        signer_entries.push(SignerEntry(SignerEntryType(Account(AccountIdType([1_u8; 20])),
+                                                        SignerWeight(UInt16Type(1_u16)))));
+        signer_entries.push(SignerEntry(SignerEntryType(Account(AccountIdType([2_u8; 20])),
+                                                        SignerWeight(UInt16Type(2_u16)))));
+
+        let signer_list_set = SignerListSet::new(
+            account,
+            fee,
+            signer_quorum,
+            signer_entries.clone(),
+            Some(signing_pub_key),
+        );
+
+        let buf = signer_list_set.binary_serialize(true);
+        // Construct the expected buf manually
+        let mut expected_buf = Vec::<u8>::default();
+        expected_buf.extend_from_slice(&TransactionType(UInt16Type(TransactionTypeCode::SignerListSet.code())).binary_serialize(true)); // TransactionType
+        expected_buf.extend_from_slice(&Flags(UInt32Type(0x8000_0000_u32)).binary_serialize(true)); // Flags
+        expected_buf.extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
+        expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
+        expected_buf.extend_from_slice(&SigningPubKey(BlobType(signing_pub_key.to_vec())).binary_serialize(true)); // SigningPubKey
+        expected_buf.extend_from_slice(&TxnSignature::default().binary_serialize(true)); // TxnSignature
+        expected_buf.extend_from_slice(&Account(AccountIdType(account)).binary_serialize(true)); // Account
+        expected_buf.extend_from_slice(&SignerEntries(STArrayType(signer_entries)).binary_serialize(true)); // SignerEntries
+
+        assert_eq!(buf, expected_buf);
     }
 }

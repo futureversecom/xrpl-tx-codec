@@ -8,13 +8,13 @@ use crate::field::{Account, SignerWeight};
 
 pub const ACCOUNT_ID_TYPE_CODE: u16 = 8;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NotPresentType;
 impl BinarySerialize for NotPresentType {
     fn binary_serialize_to(&self, _buf: &mut Vec<u8>, _for_signing: bool) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UInt16Type(pub u16);
 
 impl BinarySerialize for UInt16Type {
@@ -23,7 +23,7 @@ impl BinarySerialize for UInt16Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UInt32Type(pub u32);
 
 impl BinarySerialize for UInt32Type {
@@ -32,7 +32,7 @@ impl BinarySerialize for UInt32Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UInt64Type(pub u64);
 
 impl BinarySerialize for UInt64Type {
@@ -41,7 +41,7 @@ impl BinarySerialize for UInt64Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hash160Type(pub [u8; 20]);
 impl BinarySerialize for Hash160Type {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -49,7 +49,7 @@ impl BinarySerialize for Hash160Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Hash256Type(pub [u8; 32]);
 impl BinarySerialize for Hash256Type {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -57,7 +57,7 @@ impl BinarySerialize for Hash256Type {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AccountIdType(pub [u8; 20]);
 impl BinarySerialize for AccountIdType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -65,7 +65,7 @@ impl BinarySerialize for AccountIdType {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct BlobType(pub Vec<u8>);
 
 impl BinarySerialize for BlobType {
@@ -76,7 +76,7 @@ impl BinarySerialize for BlobType {
 
 /// Current
 ///ly supporting native XRP amounts only
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AmountType(pub u64);
 impl BinarySerialize for AmountType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -99,7 +99,7 @@ impl BinarySerialize for AmountType {
 //     }
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SignerEntryType(pub Account, pub SignerWeight);
 impl BinarySerialize for SignerEntryType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
@@ -112,7 +112,7 @@ impl BinarySerialize for SignerEntryType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct STArrayType<T>(pub Vec<T>);
 impl<T: BinarySerialize> BinarySerialize for STArrayType<T> {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
