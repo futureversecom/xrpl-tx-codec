@@ -2,12 +2,16 @@
 
 use std::process::Command;
 
-use xrpl_codec::{traits::BinarySerialize, transaction::Payment};
+use xrpl_codec::{
+    traits::BinarySerialize,
+    transaction::{Payment, SignerListSet},
+};
 
 // Assert `encoded` input decodes to `expected` JSON format (whitespace will be removed)
 fn assert_decodes(encoded: &[u8], expected: &str) {
     let js_test = format!(
-        "const xrpl = require(\"xrpl\"); console.log(xrpl.decode('{}'));",
+        "const util = require('util'); const xrpl = require(\"xrpl\"); \
+        console.log(util.inspect(xrpl.decode('{}'), false, null, false));",
         hex::encode(&encoded)
     );
     let result = Command::new("node")
@@ -21,8 +25,9 @@ fn assert_decodes(encoded: &[u8], expected: &str) {
         core::str::from_utf8(&result.stdout)
             .expect("valid utf8 only")
             .replace(" ", "")
+            .replace("\n", "")
             .trim(),
-        expected.replace(" ", "")
+        expected.replace(" ", "").replace("\n", "")
     );
 }
 
@@ -185,4 +190,138 @@ fn public_key_to_account_id() {
         .to_string();
 
     assert_eq!(xrpl_js_output, "rLFd1FzHMScFhLsXeaxStzv3UC97QHGAbM");
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn decode_SignerListSet_tx() {
+    let account = [1_u8; 20];
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let signer_quorum = 3_u32;
+    let mut signer_entries = Vec::<([u8; 20], u16)>::default();
+    signer_entries.push(([1_u8; 20], 1_u16));
+    signer_entries.push(([2_u8; 20], 2_u16));
+
+    let mut signer_list_set = SignerListSet::new(
+        account,
+        fee,
+        signer_quorum,
+        signer_entries.clone(),
+        Some(signing_pub_key),
+    );
+
+    let encoded_no_signature = signer_list_set.binary_serialize(true);
+
+    let expected_signer_list_set_json = r"{
+        TransactionType: 'SignerListSet',
+        Flags: 2147483648,
+        SignerQuorum: 3,
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        SignerEntries: [
+            {
+                SignerEntry: {
+                    SignerWeight: 1,
+                    Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC'
+                }
+            },
+            {
+                SignerEntry: {
+                    SignerWeight: 2,
+                    Account: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+                }
+            }
+        ]
+    }";
+
+    assert_decodes(
+        encoded_no_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
+    // with signature
+    signer_list_set.attach_signature([7_u8; 65]);
+    let expected_signer_list_set_json = r"{
+        TransactionType: 'SignerListSet',
+        Flags: 2147483648,
+        SignerQuorum: 3,
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        SignerEntries: [
+            {
+                SignerEntry: {
+                    SignerWeight: 1,
+                    Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC'
+                }
+            },
+            {
+                SignerEntry: {
+                    SignerWeight: 2,
+                    Account: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+                }
+            }
+        ]
+    }";
+    let encoded_with_signature = signer_list_set.binary_serialize(false);
+    assert_decodes(
+        encoded_with_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn decode_SignerListSet_tx_empty_signer_entries() {
+    let account = [1_u8; 20];
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let signer_quorum = 3_u32;
+    // let mut signer_entries = Vec::<([u8; 20], u16)>::default();
+    // signer_entries.push(([1_u8; 20], 1_u16));
+    // signer_entries.push(([2_u8; 20], 2_u16));
+
+    let mut signer_list_set = SignerListSet::new(
+        account,
+        fee,
+        signer_quorum,
+        Default::default(),
+        Some(signing_pub_key),
+    );
+
+    let encoded_no_signature = signer_list_set.binary_serialize(true);
+
+    let expected_signer_list_set_json = r"{
+        TransactionType: 'SignerListSet',
+        Flags: 2147483648,
+        SignerQuorum: 3,
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        SignerEntries: []
+    }";
+
+    assert_decodes(
+        encoded_no_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
+    // with signature
+    signer_list_set.attach_signature([7_u8; 65]);
+    let expected_signer_list_set_json = r"{
+        TransactionType: 'SignerListSet',
+        Flags: 2147483648,
+        SignerQuorum: 3,
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        SignerEntries: []
+    }";
+    let encoded_with_signature = signer_list_set.binary_serialize(false);
+    assert_decodes(
+        encoded_with_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
 }
