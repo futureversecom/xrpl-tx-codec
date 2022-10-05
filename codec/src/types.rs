@@ -85,20 +85,7 @@ impl BinarySerialize for AmountType {
     }
 }
 
-// #[derive(Debug)]
-// pub struct STObjectType<T>(pub T);
-// impl<T: BinarySerialize + CodecToFields> BinarySerialize for STObjectType<T> {
-//     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
-//         // Iterate over the canonical fields and do their serialize
-//         for f in self.0.to_canonical_fields().iter_mut() {
-//             f.binary_serialize_to(buf, _for_signing);
-//         }
-//
-//         // Append the array end here. Ref -> https://xrpl.org/serialization.html#object-fields
-//         buf.push(0xe1);
-//     }
-// }
-
+// TODO(surangap) - https://github.com/futureversecom/xrpl-tx-codec/issues/7
 #[derive(Debug, Clone)]
 pub struct SignerEntryType(pub Account, pub SignerWeight);
 impl BinarySerialize for SignerEntryType {
