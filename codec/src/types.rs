@@ -1,10 +1,10 @@
 //! XRPL codec primitive types
 
 use crate::{
-    traits::{ BinarySerialize},
+    field::{Account, SignerWeight},
+    traits::BinarySerialize,
     Vec,
 };
-use crate::field::{Account, SignerWeight};
 
 pub const ACCOUNT_ID_TYPE_CODE: u16 = 8;
 
@@ -115,26 +115,28 @@ impl<T: BinarySerialize> BinarySerialize for STArrayType<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::field::{SignerEntry, SignerWeight, Account};
+    use crate::field::{Account, SignerEntry, SignerWeight};
 
     #[test]
     #[allow(non_snake_case)]
     fn test_SignerEntryType() {
-        let signer_entry_type = SignerEntryType(Account(AccountIdType([1_u8; 20])),
-                                             SignerWeight(UInt16Type(1_u16)));
+        let signer_entry_type = SignerEntryType(
+            Account(AccountIdType([1_u8; 20])),
+            SignerWeight(UInt16Type(1_u16)),
+        );
         let buf = signer_entry_type.binary_serialize(true);
         // let signer_entry_field_id: u8 = 0xEB; // Typecode(14) | FieldCode(11) = 0xEB
         let account_field_id: u8 = 0x81; // Typecode(8) | Fieldcode(1) = 0x81(129)
         let signer_weight_field_id: u8 = 0x13; // Typecode(1) | Fieldcode(3) = 0x13(19)
         let account_field_vl: u8 = 0x14; // https://xrpl.org/serialization.html#accountid-fields
         let st_object_end: u8 = 0xe1; // https://xrpl.org/serialization.html#object-fields
-        // construct expected buffer
+                                      // construct expected buffer
         let mut expected_buf = Vec::<u8>::default();
         expected_buf.extend_from_slice(&[signer_weight_field_id]); // SignerWeight comes first in the canonical order
-        expected_buf.extend_from_slice( &1_u16.to_be_bytes());
+        expected_buf.extend_from_slice(&1_u16.to_be_bytes());
         expected_buf.extend_from_slice(&[account_field_id]);
         expected_buf.extend_from_slice(&[account_field_vl]);
-        expected_buf.extend_from_slice( &[1_u8; 20]);
+        expected_buf.extend_from_slice(&[1_u8; 20]);
         expected_buf.extend_from_slice(&[st_object_end]);
 
         assert_eq!(buf, expected_buf);
@@ -143,10 +145,12 @@ mod tests {
     #[allow(non_snake_case)]
     fn test_STArrayType() {
         // use SignerEntry
-        let mut signer_entries  = Vec::<SignerEntry>::default();
+        let mut signer_entries = Vec::<SignerEntry>::default();
         for i in 1..=2 {
-            signer_entries.push(SignerEntry(SignerEntryType(Account(AccountIdType([i as u8; 20])),
-                                            SignerWeight(UInt16Type(i as u16)))));
+            signer_entries.push(SignerEntry(SignerEntryType(
+                Account(AccountIdType([i as u8; 20])),
+                SignerWeight(UInt16Type(i as u16)),
+            )));
         }
         let st_array_type = STArrayType(signer_entries);
 

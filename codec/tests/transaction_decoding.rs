@@ -198,7 +198,7 @@ fn decode_SignerListSet_tx() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
-    let signer_quorum  = 3_u32;
+    let signer_quorum = 3_u32;
     let mut signer_entries = Vec::<([u8; 20], u16)>::default();
     signer_entries.push(([1_u8; 20], 1_u16));
     signer_entries.push(([2_u8; 20], 2_u16));
@@ -236,7 +236,10 @@ fn decode_SignerListSet_tx() {
         ]
     }";
 
-    assert_decodes(encoded_no_signature.as_slice(), expected_signer_list_set_json);
+    assert_decodes(
+        encoded_no_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
     // with signature
     signer_list_set.attach_signature([7_u8; 65]);
     let expected_signer_list_set_json = r"{
@@ -263,7 +266,10 @@ fn decode_SignerListSet_tx() {
         ]
     }";
     let encoded_with_signature = signer_list_set.binary_serialize(false);
-    assert_decodes(encoded_with_signature.as_slice(), expected_signer_list_set_json);
+    assert_decodes(
+        encoded_with_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
 }
 
 #[test]
@@ -272,7 +278,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
-    let signer_quorum  = 3_u32;
+    let signer_quorum = 3_u32;
     // let mut signer_entries = Vec::<([u8; 20], u16)>::default();
     // signer_entries.push(([1_u8; 20], 1_u16));
     // signer_entries.push(([2_u8; 20], 2_u16));
@@ -297,7 +303,10 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         SignerEntries: []
     }";
 
-    assert_decodes(encoded_no_signature.as_slice(), expected_signer_list_set_json);
+    assert_decodes(
+        encoded_no_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
     // with signature
     signer_list_set.attach_signature([7_u8; 65]);
     let expected_signer_list_set_json = r"{
@@ -311,5 +320,8 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         SignerEntries: []
     }";
     let encoded_with_signature = signer_list_set.binary_serialize(false);
-    assert_decodes(encoded_with_signature.as_slice(), expected_signer_list_set_json);
+    assert_decodes(
+        encoded_with_signature.as_slice(),
+        expected_signer_list_set_json,
+    );
 }

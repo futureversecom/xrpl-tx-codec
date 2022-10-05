@@ -5,8 +5,10 @@ use xrpl_codec_utils::Field;
 
 use crate::{
     traits::{BinarySerialize, CodecField},
-    types::{AccountIdType, AmountType, BlobType, UInt16Type, UInt32Type, ACCOUNT_ID_TYPE_CODE,
-    STArrayType, SignerEntryType},
+    types::{
+        AccountIdType, AmountType, BlobType, STArrayType, SignerEntryType, UInt16Type, UInt32Type,
+        ACCOUNT_ID_TYPE_CODE,
+    },
     Vec,
 };
 
@@ -194,8 +196,10 @@ mod tests {
     }
     #[test]
     fn serialize_signer_entry() {
-        let signer_entry = SignerEntry(SignerEntryType(Account(AccountIdType([1_u8; 20])),
-                                                    SignerWeight(UInt16Type(1_u16))));
+        let signer_entry = SignerEntry(SignerEntryType(
+            Account(AccountIdType([1_u8; 20])),
+            SignerWeight(UInt16Type(1_u16)),
+        ));
         let buf = signer_entry.binary_serialize(true);
         // construct the expected buffer manually
         let signer_entry_field_id: u8 = 0xEB; // Typecode(14) | FieldCode(11) = 0xEB
@@ -207,20 +211,22 @@ mod tests {
         let mut expected_buf = Vec::<u8>::default();
         expected_buf.extend_from_slice(&[signer_entry_field_id]);
         expected_buf.extend_from_slice(&[signer_weight_field_id]); // SignerWeight comes first in the canonical order
-        expected_buf.extend_from_slice( &1_u16.to_be_bytes());
+        expected_buf.extend_from_slice(&1_u16.to_be_bytes());
         expected_buf.extend_from_slice(&[account_field_id]);
         expected_buf.extend_from_slice(&[account_field_vl]);
-        expected_buf.extend_from_slice( &[1_u8; 20]);
+        expected_buf.extend_from_slice(&[1_u8; 20]);
         expected_buf.extend_from_slice(&[st_object_end]);
 
         assert_eq!(buf, expected_buf);
     }
     #[test]
     fn serialize_signer_entries() {
-        let mut signer_entries_vec  = Vec::<SignerEntry>::default();
+        let mut signer_entries_vec = Vec::<SignerEntry>::default();
         for i in 1..=2 {
-            signer_entries_vec.push(SignerEntry(SignerEntryType(Account(AccountIdType([i as u8; 20])),
-                                                            SignerWeight(UInt16Type(i as u16)))));
+            signer_entries_vec.push(SignerEntry(SignerEntryType(
+                Account(AccountIdType([i as u8; 20])),
+                SignerWeight(UInt16Type(i as u16)),
+            )));
         }
         let signer_entries = SignerEntries(STArrayType(signer_entries_vec));
 
