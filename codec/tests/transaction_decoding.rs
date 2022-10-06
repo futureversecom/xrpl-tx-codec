@@ -197,6 +197,7 @@ fn public_key_to_account_id() {
 fn decode_SignerListSet_tx() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
+    let nonce = 1_u32;
     let signing_pub_key = [1_u8; 33];
     let signer_quorum = 3_u32;
     let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -206,6 +207,7 @@ fn decode_SignerListSet_tx() {
     let mut signer_list_set = SignerListSet::new(
         account,
         fee,
+        nonce,
         signer_quorum,
         signer_entries.clone(),
         Some(signing_pub_key),
@@ -216,6 +218,7 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        Sequence: 1,
         SignerQuorum: 3,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -245,6 +248,7 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        Sequence: 1,
         SignerQuorum: 3,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -277,6 +281,7 @@ fn decode_SignerListSet_tx() {
 fn decode_SignerListSet_tx_empty_signer_entries() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
+    let nonce = 1_u32;
     let signing_pub_key = [1_u8; 33];
     let signer_quorum = 3_u32;
     // let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -286,6 +291,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let mut signer_list_set = SignerListSet::new(
         account,
         fee,
+        nonce,
         signer_quorum,
         Default::default(),
         Some(signing_pub_key),
@@ -296,6 +302,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        Sequence: 1,
         SignerQuorum: 3,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -312,6 +319,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        Sequence: 1,
         SignerQuorum: 3,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',

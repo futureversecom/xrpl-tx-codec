@@ -10,61 +10,6 @@ use crate::{
     Vec,
 };
 
-/*
-   Tx Common Fields
-   https://xrpl.org/transaction-common-fields.html#memos-field
-   ```
-   Account 	String 	AccountID
-   TransactionType 	String 	UInt16
-   Fee 	String 	Amount
-   Sequence 	Number 	UInt32
-   SigningPubKey String  Blob *part of signed data ✅
-   TxnSignature String Blob
-   ```
-
-   Payment
-   https://xrpl.org/payment.html
-
-   ```
-   Amount  CurrencyAmount Amount (XRP = string only)
-   Destination String 	AccountID
-   ```
-
-   SignerList
-   https://xrpl.org/signerlistset.html
-   ```
-   SignerQuorum 	Number 	UInt32
-   SignerEntries 	Array 	Array
-       Account 	String 	AccountID
-       SignerWeight 	Number 	UInt16
-   ```
-*/
-
-// pub struct SetSignerList {
-//     /// common tx fields
-//     account: Field::AccountId,
-//     transaction_type: Field::TransactionType,
-//     fee: Field::Fee,
-//     sequence: Field::Sequence,
-//     /// payment only
-//     amount: Field::Amount,
-//     destination: Field::AccountId,
-//     /// set when signing
-//     /// TODO: set to empty string / omit these fields for multisig txs
-//     ///     use 'signers' instead
-//     signing_pub_key: Field::SigningPubKey,
-//     txn_signature: Field::TxnSignature,
-// }
-
-/*
-SignersField
-https://xrpl.org/transaction-common-fields.html#signers-field
-
-Account 	String 	AccountID 	The address associated with this signature, as it appears in the signer list.
-TxnSignature 	String 	Blob 	A signature for this transaction, verifiable using the SigningPubKey.
-SigningPubKey 	String 	Blob 	The public key used to create this signature.
-*/
-
 /// An XRP payment tx
 #[derive(Transaction, Debug)]
 pub struct Payment {
@@ -129,6 +74,7 @@ pub struct SignerListSet {
     account: Account,
     transaction_type: TransactionType,
     fee: Fee,
+    sequence: Sequence,
     flags: Flags,
     /// SignerListSet
     signer_quorum: SignerQuorum,
@@ -145,12 +91,14 @@ impl SignerListSet {
     ///
     /// - `account` the sender's address
     /// - `fee` the max XRP fee in drops
+    /// - `nonce` the account sequence #
     /// - `signer_quorum` signer quorum required
     /// - `signer_entries` signer entries which can participate in multi signing
     /// - `signing_pub_key` public key of `account`
     pub fn new(
         account: [u8; 20],
         fee: u64,
+        nonce: u32,
         signer_quorum: u32,
         signer_entries: Vec<([u8; 20], u16)>,
         signing_pub_key: Option<[u8; 33]>,
@@ -159,6 +107,7 @@ impl SignerListSet {
             account: Account(AccountIdType(account)),
             transaction_type: TransactionTypeCode::SignerListSet.into(),
             fee: Fee(AmountType(fee)),
+            sequence: Sequence(UInt32Type(nonce)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             signer_quorum: SignerQuorum(UInt32Type(signer_quorum)),
@@ -230,6 +179,7 @@ mod tests {
     fn test_SignerListSet_canonical_field_order() {
         let account = [1_u8; 20];
         let fee = 1_000; // 1000 drops
+        let nonce = 1_u32;
         let signing_pub_key = [1_u8; 33];
         let signer_quorum = 3_u32;
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -239,6 +189,7 @@ mod tests {
         let signer_list_set = SignerListSet::new(
             account,
             fee,
+            nonce,
             signer_quorum,
             signer_entries,
             Some(signing_pub_key),
@@ -262,6 +213,7 @@ mod tests {
     fn test_SignerListSet_serialize() {
         let account = [1_u8; 20];
         let fee = 1_000; // 1000 drops
+        let nonce = 1_u32;
         let signing_pub_key = [1_u8; 33];
         let signer_quorum = 3_u32;
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -271,6 +223,7 @@ mod tests {
         let signer_list_set = SignerListSet::new(
             account,
             fee,
+            nonce,
             signer_quorum,
             signer_entries.clone(),
             Some(signing_pub_key),
@@ -284,6 +237,7 @@ mod tests {
                 .binary_serialize(true),
         ); // TransactionType
         expected_buf.extend_from_slice(&Flags(UInt32Type(0x8000_0000_u32)).binary_serialize(true)); // Flags
+        expected_buf.extend_from_slice(&Sequence(UInt32Type(nonce)).binary_serialize(true)); // Nonce
         expected_buf
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
         expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
