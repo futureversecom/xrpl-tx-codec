@@ -37,6 +37,7 @@ fn serialize_payment_tx() {
     let destination = [2_u8; 20];
     let amount = 5_000_000_u64; // 5 XRP
     let nonce = 1_u32;
+    let ticket_number = 1_u32;
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
     let mut payment = Payment::new(
@@ -44,6 +45,7 @@ fn serialize_payment_tx() {
         destination,
         amount,
         nonce,
+        ticket_number,
         fee,
         Some(signing_pub_key),
     );
@@ -52,6 +54,7 @@ fn serialize_payment_tx() {
         TransactionType: 'Payment',
         Flags: 2147483648,
         Sequence: 1,
+        TicketSequence: 1,
         Amount: '5000000',
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -68,6 +71,7 @@ fn serialize_payment_tx() {
         TransactionType: 'Payment',
         Flags: 2147483648,
         Sequence: 1,
+        TicketSequence: 1,
         Amount: '5000000',
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -85,6 +89,7 @@ fn serialize_payment_zero_values() {
     let destination = [2_u8; 20];
     let amount = 0; // 5 XRP
     let nonce = 0_u32;
+    let ticket_number = 0_u32;
     let fee = 0; // 1000 drops
     let signing_pub_key = [1_u8; 33];
     let payment = Payment::new(
@@ -92,6 +97,7 @@ fn serialize_payment_zero_values() {
         destination,
         amount,
         nonce,
+        ticket_number,
         fee,
         Some(signing_pub_key),
     );
@@ -100,6 +106,7 @@ fn serialize_payment_zero_values() {
         TransactionType: 'Payment',
         Flags: 2147483648,
         Sequence: 0,
+        TicketSequence: 0,
         Amount: '0',
         Fee: '0',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
@@ -117,11 +124,12 @@ fn encode_for_multi_signing() {
     let destination = [2_u8; 20];
     let amount = 5_000_000_u64; // 5 XRP
     let nonce = 1_u32;
+    let ticket_number = 1_u32;
     let fee = 1_000; // 1000 drops
     let signing_pub_key =
         hex_literal::hex!("020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1");
 
-    let payment = Payment::new(account, destination, amount, nonce, fee, None);
+    let payment = Payment::new(account, destination, amount, nonce, ticket_number, fee, None);
 
     let js_test = format!(
         r#"
@@ -198,6 +206,7 @@ fn decode_SignerListSet_tx() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
     let nonce = 1_u32;
+    let ticket_number = 1_u32;
     let signing_pub_key = [1_u8; 33];
     let signer_quorum = 3_u32;
     let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -208,6 +217,7 @@ fn decode_SignerListSet_tx() {
         account,
         fee,
         nonce,
+        ticket_number,
         signer_quorum,
         signer_entries.clone(),
         Some(signing_pub_key),
@@ -220,6 +230,7 @@ fn decode_SignerListSet_tx() {
         Flags: 2147483648,
         Sequence: 1,
         SignerQuorum: 3,
+        TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
@@ -250,6 +261,7 @@ fn decode_SignerListSet_tx() {
         Flags: 2147483648,
         Sequence: 1,
         SignerQuorum: 3,
+        TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
@@ -282,6 +294,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let account = [1_u8; 20];
     let fee = 1_000; // 1000 drops
     let nonce = 1_u32;
+    let ticket_number = 1_u32;
     let signing_pub_key = [1_u8; 33];
     let signer_quorum = 3_u32;
     // let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -292,6 +305,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         account,
         fee,
         nonce,
+        ticket_number,
         signer_quorum,
         Default::default(),
         Some(signing_pub_key),
@@ -304,6 +318,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         Flags: 2147483648,
         Sequence: 1,
         SignerQuorum: 3,
+        TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
@@ -321,6 +336,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         Flags: 2147483648,
         Sequence: 1,
         SignerQuorum: 3,
+        TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
