@@ -129,7 +129,15 @@ fn encode_for_multi_signing() {
     let signing_pub_key =
         hex_literal::hex!("020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1");
 
-    let payment = Payment::new(account, destination, amount, nonce, ticket_number, fee, None);
+    let payment = Payment::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        ticket_number,
+        fee,
+        None,
+    );
 
     let js_test = format!(
         r#"

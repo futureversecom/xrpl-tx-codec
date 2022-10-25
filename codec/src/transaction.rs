@@ -256,7 +256,8 @@ mod tests {
         expected_buf.extend_from_slice(&Sequence(UInt32Type(nonce)).binary_serialize(true)); // Nonce
         expected_buf
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
-        expected_buf.extend_from_slice(&TicketSequence(UInt32Type(ticket_number)).binary_serialize(true)); // ticket_number
+        expected_buf
+            .extend_from_slice(&TicketSequence(UInt32Type(ticket_number)).binary_serialize(true)); // ticket_number
         expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
         expected_buf.extend_from_slice(
             &SigningPubKey(BlobType(signing_pub_key.to_vec())).binary_serialize(true),

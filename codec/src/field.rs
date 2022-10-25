@@ -269,5 +269,4 @@ mod tests {
         let buf = TicketSequence(UInt32Type(ticket_number)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
-
 }
