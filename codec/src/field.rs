@@ -37,6 +37,9 @@ pub struct Flags(pub UInt32Type);
 #[derive(Field, Debug, Clone)]
 pub struct Sequence(pub UInt32Type);
 
+#[derive(Field, Debug, Clone)]
+pub struct TicketSequence(pub UInt32Type);
+
 #[derive(Field, Debug, Default)]
 pub struct SigningPubKey(pub BlobType);
 
@@ -253,5 +256,17 @@ mod tests {
         expected_buf.extend_from_slice(&[0xf1]); // STArray end 0xf1
 
         assert_eq!(buf, expected_buf);
+    }
+    #[test]
+    fn serialize_Sequence() {
+        let nonce = 17_u32;
+        let buf = Sequence(UInt32Type(nonce)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_TicketSequence() {
+        let ticket_number = 1_u32;
+        let buf = TicketSequence(UInt32Type(ticket_number)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
     }
 }
