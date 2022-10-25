@@ -18,6 +18,7 @@ pub struct Payment {
     transaction_type: TransactionType,
     fee: Fee,
     sequence: Sequence,
+    ticket_sequence: TicketSequence,
     flags: Flags,
     /// payment only
     amount: Amount,
@@ -36,12 +37,14 @@ impl Payment {
     /// - `destination` the address to receive XRP
     /// - `amount` the amount of XRP to receive in drops
     /// - `nonce` the XRPL 'Sequence' # of `account`
+    /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
     /// - `fee` the max XRP fee in drops
     pub fn new(
         account: [u8; 20],
         destination: [u8; 20],
         amount: u64,
         nonce: u32,
+        ticket_sequence: u32,
         fee: u64,
         signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
@@ -50,6 +53,8 @@ impl Payment {
             transaction_type: TransactionTypeCode::Payment.into(),
             fee: Fee(AmountType(fee)),
             sequence: Sequence(UInt32Type(nonce)),
+            // https://xrpl.org/use-tickets.html
+            ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             /// payment only
@@ -75,6 +80,7 @@ pub struct SignerListSet {
     transaction_type: TransactionType,
     fee: Fee,
     sequence: Sequence,
+    ticket_sequence: TicketSequence,
     flags: Flags,
     /// SignerListSet
     signer_quorum: SignerQuorum,
@@ -92,6 +98,7 @@ impl SignerListSet {
     /// - `account` the sender's address
     /// - `fee` the max XRP fee in drops
     /// - `nonce` the account sequence #
+    /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
     /// - `signer_quorum` signer quorum required
     /// - `signer_entries` signer entries which can participate in multi signing
     /// - `signing_pub_key` public key of `account`
@@ -99,6 +106,7 @@ impl SignerListSet {
         account: [u8; 20],
         fee: u64,
         nonce: u32,
+        ticket_sequence: u32,
         signer_quorum: u32,
         signer_entries: Vec<([u8; 20], u16)>,
         signing_pub_key: Option<[u8; 33]>,
@@ -108,6 +116,8 @@ impl SignerListSet {
             transaction_type: TransactionTypeCode::SignerListSet.into(),
             fee: Fee(AmountType(fee)),
             sequence: Sequence(UInt32Type(nonce)),
+            // https://xrpl.org/use-tickets.html
+            ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             signer_quorum: SignerQuorum(UInt32Type(signer_quorum)),
@@ -150,6 +160,7 @@ mod tests {
         let destination = [2_u8; 20];
         let amount = 5_000_000_u64; // 5 XRP
         let nonce = 1_u32;
+        let ticket_number = 1_u32;
         let fee = 1_000; // 1000 drops
         let signing_pub_key = [1_u8; 33];
         let payment = Payment::new(
@@ -157,6 +168,7 @@ mod tests {
             destination,
             amount,
             nonce,
+            ticket_number,
             fee,
             Some(signing_pub_key),
         );
@@ -180,6 +192,7 @@ mod tests {
         let account = [1_u8; 20];
         let fee = 1_000; // 1000 drops
         let nonce = 1_u32;
+        let ticket_number = 1_u32;
         let signing_pub_key = [1_u8; 33];
         let signer_quorum = 3_u32;
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -190,6 +203,7 @@ mod tests {
             account,
             fee,
             nonce,
+            ticket_number,
             signer_quorum,
             signer_entries,
             Some(signing_pub_key),
@@ -214,6 +228,7 @@ mod tests {
         let account = [1_u8; 20];
         let fee = 1_000; // 1000 drops
         let nonce = 1_u32;
+        let ticket_number = 1_u32;
         let signing_pub_key = [1_u8; 33];
         let signer_quorum = 3_u32;
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
@@ -224,6 +239,7 @@ mod tests {
             account,
             fee,
             nonce,
+            ticket_number,
             signer_quorum,
             signer_entries.clone(),
             Some(signing_pub_key),
@@ -240,6 +256,7 @@ mod tests {
         expected_buf.extend_from_slice(&Sequence(UInt32Type(nonce)).binary_serialize(true)); // Nonce
         expected_buf
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
+        expected_buf.extend_from_slice(&TicketSequence(UInt32Type(ticket_number)).binary_serialize(true)); // ticket_number
         expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
         expected_buf.extend_from_slice(
             &SigningPubKey(BlobType(signing_pub_key.to_vec())).binary_serialize(true),
