@@ -26,6 +26,7 @@ pub struct Payment {
     /// set when signing
     signing_pub_key: SigningPubKey,
     txn_signature: TxnSignature,
+    source_tag: SourceTag,
 }
 
 impl Payment {
@@ -39,6 +40,8 @@ impl Payment {
     /// - `nonce` the XRPL 'Sequence' # of `account`
     /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
     /// - `fee` the max XRP fee in drops
+    /// - `signing_pub_key`
+    /// - `source_tag` futureverse source tag
     pub fn new(
         account: [u8; 20],
         destination: [u8; 20],
@@ -47,6 +50,7 @@ impl Payment {
         ticket_sequence: u32,
         fee: u64,
         signing_pub_key: Option<[u8; 33]>,
+        source_tag: u32,
     ) -> Self {
         Self {
             account: Account(AccountIdType(account)),
@@ -64,6 +68,7 @@ impl Payment {
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             txn_signature: Default::default(),
+            source_tag: SourceTag(UInt32Type(source_tag)),
         }
     }
     /// Attach a signature to the transaction
@@ -88,6 +93,7 @@ pub struct SignerListSet {
     /// set when signing
     signing_pub_key: SigningPubKey,
     txn_signature: TxnSignature,
+    source_tag: SourceTag,
 }
 
 impl SignerListSet {
@@ -110,6 +116,7 @@ impl SignerListSet {
         signer_quorum: u32,
         signer_entries: Vec<([u8; 20], u16)>,
         signing_pub_key: Option<[u8; 33]>,
+        source_tag: u32,
     ) -> Self {
         Self {
             account: Account(AccountIdType(account)),
@@ -136,6 +143,7 @@ impl SignerListSet {
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             txn_signature: Default::default(),
+            source_tag: SourceTag(UInt32Type(source_tag)),
         }
     }
     /// Attach a signature to the transaction
@@ -163,6 +171,7 @@ mod tests {
         let ticket_number = 1_u32;
         let fee = 1_000; // 1000 drops
         let signing_pub_key = [1_u8; 33];
+        let source_tag = 38_887_387_u32;
         let payment = Payment::new(
             account,
             destination,
@@ -171,6 +180,7 @@ mod tests {
             ticket_number,
             fee,
             Some(signing_pub_key),
+            source_tag,
         );
 
         for chunk in payment.to_canonical_fields().chunks(2) {
@@ -198,6 +208,7 @@ mod tests {
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
         signer_entries.push(([1_u8; 20], 1_u16));
         signer_entries.push(([2_u8; 20], 2_u16));
+        let source_tag = 38_887_387_u32;
 
         let signer_list_set = SignerListSet::new(
             account,
@@ -207,6 +218,7 @@ mod tests {
             signer_quorum,
             signer_entries,
             Some(signing_pub_key),
+            source_tag,
         );
 
         for chunk in signer_list_set.to_canonical_fields().chunks(2) {
@@ -234,6 +246,7 @@ mod tests {
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
         signer_entries.push(([1_u8; 20], 1_u16));
         signer_entries.push(([2_u8; 20], 2_u16));
+        let source_tag = 38_887_387_u32;
 
         let signer_list_set = SignerListSet::new(
             account,
@@ -243,6 +256,7 @@ mod tests {
             signer_quorum,
             signer_entries.clone(),
             Some(signing_pub_key),
+            source_tag,
         );
 
         let buf = signer_list_set.binary_serialize(true);

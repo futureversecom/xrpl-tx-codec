@@ -38,6 +38,9 @@ pub struct Flags(pub UInt32Type);
 pub struct Sequence(pub UInt32Type);
 
 #[derive(Field, Debug, Clone)]
+pub struct SourceTag(pub UInt32Type);
+
+#[derive(Field, Debug, Clone)]
 pub struct TicketSequence(pub UInt32Type);
 
 #[derive(Field, Debug, Default)]
