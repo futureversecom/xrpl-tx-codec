@@ -49,8 +49,8 @@ impl Payment {
         nonce: u32,
         ticket_sequence: u32,
         fee: u64,
-        signing_pub_key: Option<[u8; 33]>,
         source_tag: u32,
+        signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
             account: Account(AccountIdType(account)),
@@ -61,6 +61,7 @@ impl Payment {
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
             /// payment only
             amount: Amount(AmountType(amount)),
             destination: Destination(AccountIdType(destination)),
@@ -68,7 +69,6 @@ impl Payment {
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             txn_signature: Default::default(),
-            source_tag: SourceTag(UInt32Type(source_tag)),
         }
     }
     /// Attach a signature to the transaction
@@ -115,8 +115,8 @@ impl SignerListSet {
         ticket_sequence: u32,
         signer_quorum: u32,
         signer_entries: Vec<([u8; 20], u16)>,
-        signing_pub_key: Option<[u8; 33]>,
         source_tag: u32,
+        signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
             account: Account(AccountIdType(account)),
@@ -127,6 +127,7 @@ impl SignerListSet {
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
             signer_quorum: SignerQuorum(UInt32Type(signer_quorum)),
             signer_entries: SignerEntries(STArrayType(
                 signer_entries
@@ -143,7 +144,6 @@ impl SignerListSet {
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             txn_signature: Default::default(),
-            source_tag: SourceTag(UInt32Type(source_tag)),
         }
     }
     /// Attach a signature to the transaction
@@ -179,8 +179,8 @@ mod tests {
             nonce,
             ticket_number,
             fee,
-            Some(signing_pub_key),
             source_tag,
+            Some(signing_pub_key),
         );
 
         for chunk in payment.to_canonical_fields().chunks(2) {
@@ -217,8 +217,8 @@ mod tests {
             ticket_number,
             signer_quorum,
             signer_entries,
-            Some(signing_pub_key),
             source_tag,
+            Some(signing_pub_key),
         );
 
         for chunk in signer_list_set.to_canonical_fields().chunks(2) {
@@ -255,8 +255,8 @@ mod tests {
             ticket_number,
             signer_quorum,
             signer_entries.clone(),
-            Some(signing_pub_key),
             source_tag,
+            Some(signing_pub_key),
         );
 
         let buf = signer_list_set.binary_serialize(true);
@@ -267,6 +267,7 @@ mod tests {
                 .binary_serialize(true),
         ); // TransactionType
         expected_buf.extend_from_slice(&Flags(UInt32Type(0x8000_0000_u32)).binary_serialize(true)); // Flags
+        expected_buf.extend_from_slice(&SourceTag(UInt32Type(source_tag)).binary_serialize(true)); // SourceTag
         expected_buf.extend_from_slice(&Sequence(UInt32Type(nonce)).binary_serialize(true)); // Nonce
         expected_buf
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
@@ -289,7 +290,6 @@ mod tests {
             .collect();
         expected_buf
             .extend_from_slice(&SignerEntries(STArrayType(signer_entries)).binary_serialize(true)); // SignerEntries
-
         assert_eq!(buf, expected_buf);
     }
 }

@@ -272,4 +272,10 @@ mod tests {
         let buf = TicketSequence(UInt32Type(ticket_number)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
+    #[test]
+    fn serialize_SourceTag() {
+        let source_tag = 38_887_387_u32;
+        let buf = Sequence(UInt32Type(source_tag)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
 }

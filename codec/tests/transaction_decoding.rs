@@ -48,21 +48,21 @@ fn serialize_payment_tx() {
         nonce,
         ticket_number,
         fee,
-        Some(signing_pub_key),
         source_tag,
+        Some(signing_pub_key),
     );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm',
-        SourceTag: 38887387
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
 
     }";
     let encoded_no_signature = payment.binary_serialize(true);
@@ -74,6 +74,7 @@ fn serialize_payment_tx() {
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',
@@ -81,8 +82,7 @@ fn serialize_payment_tx() {
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm',
-        SourceTag: 38887387
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
     }";
     let encoded_with_signature = payment.binary_serialize(false);
     assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
@@ -106,21 +106,21 @@ fn serialize_payment_zero_values() {
         nonce,
         ticket_number,
         fee,
-        Some(signing_pub_key),
         source_tag,
+        Some(signing_pub_key),
     );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 0,
         TicketSequence: 0,
         Amount: '0',
         Fee: '0',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm',
-        SourceTag: 38887387
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
     }";
     let encoded_no_signature = payment.binary_serialize(true);
 
@@ -146,8 +146,8 @@ fn encode_for_multi_signing() {
         nonce,
         ticket_number,
         fee,
-        None,
         source_tag,
+        None,
     );
 
     let js_test = format!(
@@ -240,8 +240,8 @@ fn decode_SignerListSet_tx() {
         ticket_number,
         signer_quorum,
         signer_entries.clone(),
-        Some(signing_pub_key),
         source_tag,
+        Some(signing_pub_key),
     );
 
     let encoded_no_signature = signer_list_set.binary_serialize(true);
@@ -249,13 +249,13 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        SourceTag: 38887387,
         SignerEntries: [
             {
                 SignerEntry: {
@@ -281,6 +281,7 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
@@ -288,7 +289,6 @@ fn decode_SignerListSet_tx() {
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        SourceTag: 38887387,
         SignerEntries: [
             {
                 SignerEntry: {
@@ -332,8 +332,8 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         ticket_number,
         signer_quorum,
         Default::default(),
-        Some(signing_pub_key),
         source_tag,
+        Some(signing_pub_key),
     );
 
     let encoded_no_signature = signer_list_set.binary_serialize(true);
@@ -341,14 +341,14 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        SignerEntries: [],
-        SourceTag: 38887387,
+        SignerEntries: []
     }";
 
     assert_decodes(
@@ -360,6 +360,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
@@ -367,8 +368,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
-        SignerEntries: [],
-        SourceTag: 38887387,
+        SignerEntries: []
     }";
     let encoded_with_signature = signer_list_set.binary_serialize(false);
     assert_decodes(
