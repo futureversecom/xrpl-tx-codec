@@ -261,21 +261,21 @@ mod tests {
         assert_eq!(buf, expected_buf);
     }
     #[test]
-    fn serialize_Sequence() {
+    fn serialize_sequence() {
         let nonce = 17_u32;
         let buf = Sequence(UInt32Type(nonce)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
     #[test]
-    fn serialize_TicketSequence() {
+    fn serialize_ticket_sequence() {
         let ticket_number = 1_u32;
         let buf = TicketSequence(UInt32Type(ticket_number)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
     #[test]
-    fn serialize_SourceTag() {
+    fn serialize_source_tag() {
         let source_tag = 38_887_387_u32;
-        let buf = Sequence(UInt32Type(source_tag)).binary_serialize(true);
+        let buf = SourceTag(UInt32Type(source_tag)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
 }
