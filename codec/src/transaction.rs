@@ -26,6 +26,7 @@ pub struct Payment {
     /// set when signing
     signing_pub_key: SigningPubKey,
     txn_signature: TxnSignature,
+    source_tag: SourceTag,
 }
 
 impl Payment {
@@ -39,6 +40,8 @@ impl Payment {
     /// - `nonce` the XRPL 'Sequence' # of `account`
     /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
     /// - `fee` the max XRP fee in drops
+    /// - `signing_pub_key`
+    /// - `source_tag` futureverse source tag
     pub fn new(
         account: [u8; 20],
         destination: [u8; 20],
@@ -46,6 +49,7 @@ impl Payment {
         nonce: u32,
         ticket_sequence: u32,
         fee: u64,
+        source_tag: u32,
         signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
@@ -57,6 +61,7 @@ impl Payment {
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
             /// payment only
             amount: Amount(AmountType(amount)),
             destination: Destination(AccountIdType(destination)),
@@ -88,6 +93,7 @@ pub struct SignerListSet {
     /// set when signing
     signing_pub_key: SigningPubKey,
     txn_signature: TxnSignature,
+    source_tag: SourceTag,
 }
 
 impl SignerListSet {
@@ -109,6 +115,7 @@ impl SignerListSet {
         ticket_sequence: u32,
         signer_quorum: u32,
         signer_entries: Vec<([u8; 20], u16)>,
+        source_tag: u32,
         signing_pub_key: Option<[u8; 33]>,
     ) -> Self {
         Self {
@@ -120,6 +127,7 @@ impl SignerListSet {
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
             signer_quorum: SignerQuorum(UInt32Type(signer_quorum)),
             signer_entries: SignerEntries(STArrayType(
                 signer_entries
@@ -163,6 +171,7 @@ mod tests {
         let ticket_number = 1_u32;
         let fee = 1_000; // 1000 drops
         let signing_pub_key = [1_u8; 33];
+        let source_tag = 38_887_387_u32;
         let payment = Payment::new(
             account,
             destination,
@@ -170,6 +179,7 @@ mod tests {
             nonce,
             ticket_number,
             fee,
+            source_tag,
             Some(signing_pub_key),
         );
 
@@ -198,6 +208,7 @@ mod tests {
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
         signer_entries.push(([1_u8; 20], 1_u16));
         signer_entries.push(([2_u8; 20], 2_u16));
+        let source_tag = 38_887_387_u32;
 
         let signer_list_set = SignerListSet::new(
             account,
@@ -206,6 +217,7 @@ mod tests {
             ticket_number,
             signer_quorum,
             signer_entries,
+            source_tag,
             Some(signing_pub_key),
         );
 
@@ -234,6 +246,7 @@ mod tests {
         let mut signer_entries = Vec::<([u8; 20], u16)>::default();
         signer_entries.push(([1_u8; 20], 1_u16));
         signer_entries.push(([2_u8; 20], 2_u16));
+        let source_tag = 38_887_387_u32;
 
         let signer_list_set = SignerListSet::new(
             account,
@@ -242,6 +255,7 @@ mod tests {
             ticket_number,
             signer_quorum,
             signer_entries.clone(),
+            source_tag,
             Some(signing_pub_key),
         );
 
@@ -253,6 +267,7 @@ mod tests {
                 .binary_serialize(true),
         ); // TransactionType
         expected_buf.extend_from_slice(&Flags(UInt32Type(0x8000_0000_u32)).binary_serialize(true)); // Flags
+        expected_buf.extend_from_slice(&SourceTag(UInt32Type(source_tag)).binary_serialize(true)); // SourceTag
         expected_buf.extend_from_slice(&Sequence(UInt32Type(nonce)).binary_serialize(true)); // Nonce
         expected_buf
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
@@ -275,7 +290,6 @@ mod tests {
             .collect();
         expected_buf
             .extend_from_slice(&SignerEntries(STArrayType(signer_entries)).binary_serialize(true)); // SignerEntries
-
         assert_eq!(buf, expected_buf);
     }
 }

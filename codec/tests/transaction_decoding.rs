@@ -40,6 +40,7 @@ fn serialize_payment_tx() {
     let ticket_number = 1_u32;
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
     let mut payment = Payment::new(
         account,
         destination,
@@ -47,12 +48,14 @@ fn serialize_payment_tx() {
         nonce,
         ticket_number,
         fee,
+        source_tag,
         Some(signing_pub_key),
     );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',
@@ -60,6 +63,7 @@ fn serialize_payment_tx() {
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
         Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+
     }";
     let encoded_no_signature = payment.binary_serialize(true);
 
@@ -70,6 +74,7 @@ fn serialize_payment_tx() {
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',
@@ -92,6 +97,8 @@ fn serialize_payment_zero_values() {
     let ticket_number = 0_u32;
     let fee = 0; // 1000 drops
     let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+
     let payment = Payment::new(
         account,
         destination,
@@ -99,12 +106,14 @@ fn serialize_payment_zero_values() {
         nonce,
         ticket_number,
         fee,
+        source_tag,
         Some(signing_pub_key),
     );
 
     let expected_payment_json = r"{
         TransactionType: 'Payment',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 0,
         TicketSequence: 0,
         Amount: '0',
@@ -128,6 +137,7 @@ fn encode_for_multi_signing() {
     let fee = 1_000; // 1000 drops
     let signing_pub_key =
         hex_literal::hex!("020a1091341fe5664bfa1782d5e04779689068c916b04cb365ec3153755684d9a1");
+    let source_tag = 38_887_387_u32;
 
     let payment = Payment::new(
         account,
@@ -136,6 +146,7 @@ fn encode_for_multi_signing() {
         nonce,
         ticket_number,
         fee,
+        source_tag,
         None,
     );
 
@@ -220,6 +231,7 @@ fn decode_SignerListSet_tx() {
     let mut signer_entries = Vec::<([u8; 20], u16)>::default();
     signer_entries.push(([1_u8; 20], 1_u16));
     signer_entries.push(([2_u8; 20], 2_u16));
+    let source_tag = 38_887_387_u32;
 
     let mut signer_list_set = SignerListSet::new(
         account,
@@ -228,6 +240,7 @@ fn decode_SignerListSet_tx() {
         ticket_number,
         signer_quorum,
         signer_entries.clone(),
+        source_tag,
         Some(signing_pub_key),
     );
 
@@ -236,6 +249,7 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
@@ -267,6 +281,7 @@ fn decode_SignerListSet_tx() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
@@ -305,6 +320,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let ticket_number = 1_u32;
     let signing_pub_key = [1_u8; 33];
     let signer_quorum = 3_u32;
+    let source_tag = 38_887_387_u32;
     // let mut signer_entries = Vec::<([u8; 20], u16)>::default();
     // signer_entries.push(([1_u8; 20], 1_u16));
     // signer_entries.push(([2_u8; 20], 2_u16));
@@ -316,6 +332,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         ticket_number,
         signer_quorum,
         Default::default(),
+        source_tag,
         Some(signing_pub_key),
     );
 
@@ -324,6 +341,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
@@ -342,6 +360,7 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
     let expected_signer_list_set_json = r"{
         TransactionType: 'SignerListSet',
         Flags: 2147483648,
+        SourceTag: 38887387,
         Sequence: 1,
         SignerQuorum: 3,
         TicketSequence: 1,
