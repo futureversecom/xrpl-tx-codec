@@ -2,6 +2,7 @@
 
 use std::process::Command;
 
+use xrpl_codec::transaction::PaymentWithDestinationTag;
 use xrpl_codec::{
     traits::BinarySerialize,
     transaction::{Payment, SignerListSet},
@@ -56,6 +57,66 @@ fn serialize_payment_tx() {
         TransactionType: 'Payment',
         Flags: 2147483648,
         SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: '5000000',
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+
+    // with signature
+    payment.attach_signature([7_u8; 65]);
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: '5000000',
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_with_signature = payment.binary_serialize(false);
+    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
+}
+
+#[test]
+fn serialize_payment_with_destination_tag_tx() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    let amount = 5_000_000_u64; // 5 XRP
+    let nonce = 1_u32;
+    let ticket_number = 1_u32;
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+    let destination_tag = 12_124_121_u32;
+    let mut payment = PaymentWithDestinationTag::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        ticket_number,
+        fee,
+        source_tag,
+        destination_tag,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        DestinationTag: 12124121,
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',

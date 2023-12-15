@@ -41,6 +41,9 @@ pub struct Sequence(pub UInt32Type);
 pub struct SourceTag(pub UInt32Type);
 
 #[derive(Field, Debug, Clone)]
+pub struct DestinationTag(pub UInt32Type);
+
+#[derive(Field, Debug, Clone)]
 pub struct TicketSequence(pub UInt32Type);
 
 #[derive(Field, Debug, Default)]
@@ -276,6 +279,12 @@ mod tests {
     fn serialize_source_tag() {
         let source_tag = 38_887_387_u32;
         let buf = SourceTag(UInt32Type(source_tag)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_destinatiom_tag() {
+        let destination_tag = 18_887_987_u32;
+        let buf = DestinationTag(UInt32Type(destination_tag)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
     }
 }
