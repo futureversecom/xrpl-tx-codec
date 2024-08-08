@@ -1,5 +1,7 @@
 //! XRPL codec primitive types
 
+// use xrpl::models::amount::IssuedCurrencyAmount;
+// use xrpl::models::currency::{Currency, IssuedCurrency};
 use crate::{
     field::{Account, SignerWeight},
     traits::BinarySerialize,
@@ -82,6 +84,19 @@ impl BinarySerialize for AmountType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
         // https://xrpl.org/serialization.html#amount-fields
         buf.extend_from_slice((self.0 | 0x4000000000000000).to_be_bytes().as_slice());
+    }
+}
+
+///Alternate currency amount
+#[derive(Debug, Clone)]
+// amount - u64, Currency - Vec<u8>, issuer - Account
+pub struct AmountAltType(pub u64, pub Vec<u8>, pub [u8; 20]);
+impl BinarySerialize for AmountAltType {
+    fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
+        // https://xrpl.org/serialization.html#amount-fields
+        buf.extend_from_slice(self.0.to_be_bytes().as_slice());
+        buf.extend_from_slice(self.1.as_slice());
+        buf.extend_from_slice(self.2.as_slice());
     }
 }
 
