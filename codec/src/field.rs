@@ -52,6 +52,37 @@ pub struct SigningPubKey(pub BlobType);
 #[derive(Field, Debug, Clone)]
 pub struct Amount(pub AmountType);
 
+// #[derive(Field, Debug, Clone)]
+// pub struct AmountCurrency(pub AmountAltType);
+
+// https://xrpl.org/docs/references/protocol/binary-format#currency-codes
+#[derive(Default, Debug, PartialEq, Eq)]
+struct CurrencyCode {
+    reserved_high: u128, // 88 bits (using u128, but will be constrained to 88 bits)
+    iso_code: u32,       // 24 bits (using u32)
+    reserved_low: u64,   // 48 bits (using u64, but will be constrained to 48 bits)
+}
+
+impl CurrencyCode {
+    // Constructor for a zero-initialized UInt160
+    pub fn new() -> Self {
+        CurrencyCode {
+            reserved_high: 0,
+            iso_code: 0,
+            reserved_low: 0,
+        }
+    }
+
+    // Constructor to initialize UInt160 with specific values
+    pub fn from_parts(reserved_high: u128, iso_code: u32, reserved_low: u64) -> Self {
+        CurrencyCode {
+            reserved_high: reserved_high & ((1 << 88) - 1), // Constrain to 88 bits
+            iso_code: iso_code & ((1 << 24) - 1),           // Constrain to 24 bits
+            reserved_low: reserved_low & ((1 << 48) - 1),   // Constrain to 48 bits
+        }
+    }
+}
+
 #[derive(Field, Debug, Default)]
 pub struct TxnSignature(pub BlobType);
 

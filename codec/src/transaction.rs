@@ -1,6 +1,8 @@
 //! XRPL transaction types
+//use xrpl::models::amount::IssuedCurrencyAmount;
 use xrpl_codec_utils::Transaction;
 
+use crate::types::AmountAltType;
 use crate::{
     field::*,
     traits::{BinarySerialize, CodecField, CodecToFields},
@@ -62,8 +64,77 @@ impl Payment {
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
+            // payment only
             amount: Amount(AmountType(amount)),
+            destination: Destination(AccountIdType(destination)),
+            signing_pub_key: signing_pub_key
+                .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
+                .unwrap_or_default(),
+            txn_signature: Default::default(),
+        }
+    }
+    /// Attach a signature to the transaction
+    pub fn attach_signature(&mut self, signature: [u8; 65]) {
+        self.txn_signature = TxnSignature(BlobType(signature.to_vec()));
+    }
+}
+
+/// An non XRP (alternate currency) payment tx
+#[derive(Debug)]
+pub struct PaymentAltCurrency {
+    /// common tx fields
+    account: Account,
+    transaction_type: TransactionType,
+    fee: Fee,
+    sequence: Sequence,
+    ticket_sequence: TicketSequence,
+    flags: Flags,
+    /// payment only
+    amount: AmountAltType,
+    destination: Destination,
+    /// set when signing
+    signing_pub_key: SigningPubKey,
+    txn_signature: TxnSignature,
+    source_tag: SourceTag,
+}
+
+impl PaymentAltCurrency {
+    /// Create a new non XRP payment transaction
+    ///
+    /// Applies the global signing flags (see https://xrpl.org/transaction-common-fields.html#global-flags)
+    ///
+    /// - `account` the sender's address
+    /// - `destination` the address to receive XRP
+    /// - `amount` the amount of different currency to receive in drops
+    /// - `nonce` the XRPL 'Sequence' # of `account`
+    /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
+    /// - `fee` the max XRP fee in drops
+    /// - `signing_pub_key`
+    /// - `source_tag` futureverse source tag
+    pub fn new(
+        account: [u8; 20],
+        destination: [u8; 20],
+        amount: u64,
+        currency_code: Vec<u8>,
+        issuer_account_id: [u8; 20],
+        nonce: u32,
+        ticket_sequence: u32,
+        fee: u64,
+        source_tag: u32,
+        signing_pub_key: Option<[u8; 33]>,
+    ) -> Self {
+        Self {
+            account: Account(AccountIdType(account)),
+            transaction_type: TransactionTypeCode::Payment.into(),
+            fee: Fee(AmountType(fee)),
+            sequence: Sequence(UInt32Type(nonce)),
+            // https://xrpl.org/use-tickets.html
+            ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
+            // https://xrpl.org/transaction-common-fields.html#global-flags
+            flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
+            // payment only
+            amount: AmountAltType(amount, currency_code, issuer_account_id),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
@@ -132,7 +203,7 @@ impl PaymentWithDestinationTag {
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
+            // payment only
             amount: Amount(AmountType(amount)),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
