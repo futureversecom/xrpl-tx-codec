@@ -2,7 +2,6 @@
 use xrpl_codec_utils::Transaction;
 
 use crate::{
-    error::Error,
     field::*,
     traits::{BinarySerialize, CodecField, CodecToFields},
     types::{
@@ -63,7 +62,7 @@ impl Payment {
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
+            // payment only
             amount: Amount(AmountType::Drops(amount)),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
@@ -133,7 +132,7 @@ impl PaymentWithDestinationTag {
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
+            // payment only
             amount: Amount(AmountType::Drops(amount)),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
@@ -150,7 +149,7 @@ impl PaymentWithDestinationTag {
 }
 
 /// A non XRP alternative currency/token payment tx
-#[derive(Debug)]
+#[derive(Transaction, Debug)]
 pub struct PaymentAltCurrency {
     /// common tx fields
     account: Account,
@@ -190,8 +189,8 @@ impl PaymentAltCurrency {
         fee: u64,
         source_tag: u32,
         signing_pub_key: Option<[u8; 33]>,
-    ) -> Result<Self, Error> {
-        Ok(Self {
+    ) -> Self {
+        Self {
             account: Account(AccountIdType(account)),
             transaction_type: TransactionTypeCode::Payment.into(),
             fee: Fee(AmountType::Drops(fee)),
@@ -208,7 +207,7 @@ impl PaymentAltCurrency {
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             txn_signature: Default::default(),
-        })
+        }
     }
     /// Attach a signature to the transaction
     pub fn attach_signature(&mut self, signature: [u8; 65]) {
@@ -412,7 +411,7 @@ mod tests {
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
         expected_buf
             .extend_from_slice(&TicketSequence(UInt32Type(ticket_number)).binary_serialize(true)); // ticket_number
-        expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
+        expected_buf.extend_from_slice(&Fee(AmountType::Drops(fee)).binary_serialize(true)); // Fee
         expected_buf.extend_from_slice(
             &SigningPubKey(BlobType(signing_pub_key.to_vec())).binary_serialize(true),
         ); // SigningPubKey

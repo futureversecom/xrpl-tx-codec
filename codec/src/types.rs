@@ -111,8 +111,9 @@ impl BinarySerialize for CurrencyCode {
 /// The value of Issued amount, ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#string-numbers
 #[derive(Debug, Clone)]
 pub struct IssuedValue {
-    pub mantissa: i64,
-    pub exponent: i8,
+    // fields are private intentionally. use IssuedValue::from_mantissa_exponent()
+    mantissa: i64,
+    exponent: i8,
 }
 
 impl IssuedValue {
@@ -205,10 +206,10 @@ impl BinarySerialize for IssuedValue {
 /// Amount of issued token. ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#token-amounts,
 #[derive(Debug, Clone)]
 pub struct IssuedAmount {
-    // fields are private since it is validated when the IssuedAmount value is created
-    pub value: IssuedValue,
-    pub currency: CurrencyCode,
-    pub issuer: AccountIdType,
+    // fields are private intentionally. use IssuedAmount::from_issued_value()
+    value: IssuedValue,
+    currency: CurrencyCode,
+    issuer: AccountIdType,
 }
 
 impl IssuedAmount {
@@ -217,7 +218,7 @@ impl IssuedAmount {
         currency: CurrencyCode,
         issuer: AccountIdType,
     ) -> Result<Self, Error> {
-        if currency.is_valid() {
+        if !currency.is_valid() {
             return Err(Error::InvalidData(
                 "Issued amount cannot have invalid currency code".to_string(),
             ));
