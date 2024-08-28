@@ -178,7 +178,7 @@ impl TransactionTypeCode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::BlobType;
+    use crate::types::{BlobType, CurrencyCode, IssuedAmount, IssuedValue};
 
     #[test]
     fn serialize_signing_pub_key() {
@@ -286,5 +286,28 @@ mod tests {
         let destination_tag = 18_887_987_u32;
         let buf = DestinationTag(UInt32Type(destination_tag)).binary_serialize(true);
         println!("{:?}", hex::encode(&buf));
+    }
+    #[test]
+    fn serialize_amount_drops() {
+        let amount = 10;
+        let buf = Amount(AmountType::Drops(amount)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+        assert_eq!(buf.as_slice(), hex::decode("61400000000000000a").unwrap());
+    }
+
+    #[test]
+    fn serialize_amount_issued() {
+        let issuer = [3_u8; 20];
+        let token_symbol = b"ASA";
+        let token_amount = 5; // 5 ASA
+        let issued_amount = IssuedAmount::from_issued_value(
+            IssuedValue::from_mantissa_exponent(token_amount, 0).unwrap(),
+            CurrencyCode::Standard(token_symbol.clone()),
+            AccountIdType(issuer),
+        )
+        .unwrap();
+        let buf = Amount(AmountType::Issued(issued_amount)).binary_serialize(true);
+        println!("{:?}", hex::encode(&buf));
+        assert_eq!(buf.as_slice(), hex::decode("61d491c37937e0800000000000000000000000000041534100000000000303030303030303030303030303030303030303").unwrap());
     }
 }
