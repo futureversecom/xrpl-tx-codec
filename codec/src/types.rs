@@ -74,6 +74,37 @@ impl BinarySerialize for BlobType {
     }
 }
 
+/// Currency code, ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#currency-codes
+#[derive(Debug, Clone)]
+pub enum CurrencyCode {
+    Standard([u8; 3]),
+    NonStandard([u8; 20]),
+}
+
+impl CurrencyCode {
+    pub fn is_valid(&self) -> bool {
+        // https://xrpl.org/docs/references/protocol/data-types/currency-formats#currency-codes
+        match self {
+            CurrencyCode::Standard(value) => value.ne(b"XRP"),
+            CurrencyCode::NonStandard(value) => value[0] != 0x00,
+        }
+    }
+}
+
+impl BinarySerialize for CurrencyCode {
+    fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
+        // https://xrpl.org/docs/references/protocol/binary-format#currency-codes
+        match self {
+            CurrencyCode::NonStandard(payload) => buf.extend_from_slice(payload),
+            CurrencyCode::Standard(payload) => {
+                buf.extend_from_slice(&[0u8; 12]);
+                buf.extend_from_slice(payload);
+                buf.extend_from_slice(&[0u8; 5]);
+            }
+        }
+    }
+}
+
 /// Current
 ///ly supporting native XRP amounts only
 #[derive(Debug, Clone)]
