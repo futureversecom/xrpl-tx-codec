@@ -5,7 +5,9 @@ use std::process::Command;
 
 use xrpl_codec::field::Amount;
 use xrpl_codec::transaction::{PaymentAltCurrency, PaymentWithDestinationTag};
-use xrpl_codec::types::{AccountIdType, AmountType, CurrencyCodeType, IssuedAmountType, IssuedValueType};
+use xrpl_codec::types::{
+    AccountIdType, AmountType, CurrencyCodeType, IssuedAmountType, IssuedValueType,
+};
 use xrpl_codec::{
     traits::BinarySerialize,
     transaction::{Payment, SignerListSet},
@@ -176,7 +178,8 @@ fn serialize_payment_alt_tx_decimal_amount() {
     let token_symbol = b"AST";
     let token_amount = 3.14; // 3.14 AST
     let issued_amount = IssuedAmountType::from_issued_value(
-        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2).unwrap(),
+        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2)
+            .unwrap(),
         CurrencyCodeType::Standard(token_symbol.clone()),
         AccountIdType(issuer),
     )
@@ -251,7 +254,8 @@ fn serialize_payment_alt_tx_non_standard_currency_code() {
     let token_symbol = [5_u8; 20];
     let token_amount = 3.14; // 3.14 AST
     let issued_amount = IssuedAmountType::from_issued_value(
-        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2).unwrap(),
+        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2)
+            .unwrap(),
         CurrencyCodeType::NonStandard(token_symbol),
         AccountIdType(issuer),
     )

@@ -244,7 +244,7 @@ impl BinarySerialize for IssuedAmountType {
 #[derive(Debug, Clone)]
 pub enum AmountType {
     Issued(IssuedAmountType), // For tokens
-    Drops(u64),           // For XRP
+    Drops(u64),               // For XRP
 }
 
 impl BinarySerialize for AmountType {
