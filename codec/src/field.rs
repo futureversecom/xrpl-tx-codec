@@ -178,7 +178,7 @@ impl TransactionTypeCode {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{BlobType, CurrencyCode, IssuedAmount, IssuedValue};
+    use crate::types::{BlobType, CurrencyCodeType, IssuedAmountType, IssuedValueType};
 
     #[test]
     fn serialize_signing_pub_key() {
@@ -300,9 +300,9 @@ mod tests {
         let issuer = [3_u8; 20];
         let token_symbol = b"ASA";
         let token_amount = 5; // 5 ASA
-        let issued_amount = IssuedAmount::from_issued_value(
-            IssuedValue::from_mantissa_exponent(token_amount, 0).unwrap(),
-            CurrencyCode::Standard(token_symbol.clone()),
+        let issued_amount = IssuedAmountType::from_issued_value(
+            IssuedValueType::from_mantissa_exponent(token_amount, 0).unwrap(),
+            CurrencyCodeType::Standard(token_symbol.clone()),
             AccountIdType(issuer),
         )
         .unwrap();

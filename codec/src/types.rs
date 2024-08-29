@@ -79,27 +79,27 @@ impl BinarySerialize for BlobType {
 
 /// Currency code, ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#currency-codes
 #[derive(Debug, Clone)]
-pub enum CurrencyCode {
+pub enum CurrencyCodeType {
     Standard([u8; 3]),
     NonStandard([u8; 20]),
 }
 
-impl CurrencyCode {
+impl CurrencyCodeType {
     pub fn is_valid(&self) -> bool {
         // https://xrpl.org/docs/references/protocol/data-types/currency-formats#currency-codes
         match self {
-            CurrencyCode::Standard(value) => value.ne(b"XRP"),
-            CurrencyCode::NonStandard(value) => value[0] != 0x00,
+            CurrencyCodeType::Standard(value) => value.ne(b"XRP"),
+            CurrencyCodeType::NonStandard(value) => value[0] != 0x00,
         }
     }
 }
 
-impl BinarySerialize for CurrencyCode {
+impl BinarySerialize for CurrencyCodeType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, _for_signing: bool) {
         // https://xrpl.org/docs/references/protocol/binary-format#currency-codes
         match self {
-            CurrencyCode::NonStandard(payload) => buf.extend_from_slice(payload),
-            CurrencyCode::Standard(payload) => {
+            CurrencyCodeType::NonStandard(payload) => buf.extend_from_slice(payload),
+            CurrencyCodeType::Standard(payload) => {
                 buf.extend_from_slice(&[0u8; 12]);
                 buf.extend_from_slice(payload);
                 buf.extend_from_slice(&[0u8; 5]);
@@ -110,13 +110,13 @@ impl BinarySerialize for CurrencyCode {
 
 /// The value of Issued amount, ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#string-numbers
 #[derive(Debug, Clone)]
-pub struct IssuedValue {
-    // fields are private intentionally. use IssuedValue::from_mantissa_exponent()
+pub struct IssuedValueType {
+    // fields are private intentionally. use IssuedValueType::from_mantissa_exponent()
     mantissa: i64,
     exponent: i8,
 }
 
-impl IssuedValue {
+impl IssuedValueType {
     /// Creates value from given mantissa and exponent. The created value will be normalized
     /// according to https://xrpl.org/docs/references/protocol/binary-format#token-amount-format. If the value
     /// cannot be represented, an error is returned.
@@ -182,7 +182,7 @@ impl IssuedValue {
     }
 }
 
-impl BinarySerialize for IssuedValue {
+impl BinarySerialize for IssuedValueType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, for_signing: bool) {
         // https://xrpl.org/docs/references/protocol/binary-format#token-amount-format
         const ISSUED_MASK: u64 = 0x8000000000000000;
@@ -205,17 +205,17 @@ impl BinarySerialize for IssuedValue {
 
 /// Amount of issued token. ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#token-amounts,
 #[derive(Debug, Clone)]
-pub struct IssuedAmount {
-    // fields are private intentionally. use IssuedAmount::from_issued_value()
-    value: IssuedValue,
-    currency: CurrencyCode,
+pub struct IssuedAmountType {
+    // fields are private intentionally. use IssuedAmountType::from_issued_value()
+    value: IssuedValueType,
+    currency: CurrencyCodeType,
     issuer: AccountIdType,
 }
 
-impl IssuedAmount {
+impl IssuedAmountType {
     pub fn from_issued_value(
-        value: IssuedValue,
-        currency: CurrencyCode,
+        value: IssuedValueType,
+        currency: CurrencyCodeType,
         issuer: AccountIdType,
     ) -> Result<Self, Error> {
         if !currency.is_valid() {
@@ -231,7 +231,7 @@ impl IssuedAmount {
     }
 }
 
-impl BinarySerialize for IssuedAmount {
+impl BinarySerialize for IssuedAmountType {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, for_signing: bool) {
         // https://xrpl.org/docs/references/protocol/binary-format#amount-fields
         self.value.binary_serialize_to(buf, for_signing);
@@ -243,7 +243,7 @@ impl BinarySerialize for IssuedAmount {
 /// Amount type, ref - https://xrpl.org/docs/references/protocol/data-types/currency-formats#specifying-currency-amounts
 #[derive(Debug, Clone)]
 pub enum AmountType {
-    Issued(IssuedAmount), // For tokens
+    Issued(IssuedAmountType), // For tokens
     Drops(u64),           // For XRP
 }
 
