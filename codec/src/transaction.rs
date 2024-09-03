@@ -55,15 +55,15 @@ impl Payment {
         Self {
             account: Account(AccountIdType(account)),
             transaction_type: TransactionTypeCode::Payment.into(),
-            fee: Fee(AmountType(fee)),
+            fee: Fee(AmountType::Drops(fee)),
             sequence: Sequence(UInt32Type(nonce)),
             // https://xrpl.org/use-tickets.html
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
-            amount: Amount(AmountType(amount)),
+            // payment only
+            amount: Amount(AmountType::Drops(amount)),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
@@ -125,20 +125,87 @@ impl PaymentWithDestinationTag {
         Self {
             account: Account(AccountIdType(account)),
             transaction_type: TransactionTypeCode::Payment.into(),
-            fee: Fee(AmountType(fee)),
+            fee: Fee(AmountType::Drops(fee)),
             sequence: Sequence(UInt32Type(nonce)),
             // https://xrpl.org/use-tickets.html
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             // https://xrpl.org/transaction-common-fields.html#global-flags
             flags: Flags(UInt32Type(0x8000_0000_u32)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            /// payment only
-            amount: Amount(AmountType(amount)),
+            // payment only
+            amount: Amount(AmountType::Drops(amount)),
             destination: Destination(AccountIdType(destination)),
             signing_pub_key: signing_pub_key
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
                 .unwrap_or_default(),
             destination_tag: DestinationTag(UInt32Type(destination_tag)),
+            txn_signature: Default::default(),
+        }
+    }
+    /// Attach a signature to the transaction
+    pub fn attach_signature(&mut self, signature: [u8; 65]) {
+        self.txn_signature = TxnSignature(BlobType(signature.to_vec()));
+    }
+}
+
+/// A non XRP alternative currency/token payment tx
+#[derive(Transaction, Debug)]
+pub struct PaymentAltCurrency {
+    /// common tx fields
+    account: Account,
+    transaction_type: TransactionType,
+    fee: Fee,
+    sequence: Sequence,
+    ticket_sequence: TicketSequence,
+    flags: Flags,
+    /// payment only
+    amount: Amount,
+    destination: Destination,
+    /// set when signing
+    signing_pub_key: SigningPubKey,
+    txn_signature: TxnSignature,
+    source_tag: SourceTag,
+}
+
+impl PaymentAltCurrency {
+    /// Create a new non XRP token payment transaction
+    ///
+    /// Applies the global signing flags (see https://xrpl.org/transaction-common-fields.html#global-flags)
+    ///
+    /// - `account` the sender's address
+    /// - `destination` the address to receive XRP
+    /// - `amount` the amount of token in Amount type
+    /// - `nonce` the XRPL 'Sequence' # of `account`
+    /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
+    /// - `fee` the max XRP fee in drops
+    /// - `signing_pub_key`
+    /// - `source_tag` futureverse source tag
+    pub fn new(
+        account: [u8; 20],
+        destination: [u8; 20],
+        amount: Amount,
+        nonce: u32,
+        ticket_sequence: u32,
+        fee: u64,
+        source_tag: u32,
+        signing_pub_key: Option<[u8; 33]>,
+    ) -> Self {
+        Self {
+            account: Account(AccountIdType(account)),
+            transaction_type: TransactionTypeCode::Payment.into(),
+            fee: Fee(AmountType::Drops(fee)),
+            sequence: Sequence(UInt32Type(nonce)),
+            // https://xrpl.org/use-tickets.html
+            ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
+            // https://xrpl.org/transaction-common-fields.html#global-flags
+            flags: Flags(UInt32Type(0x8000_0000_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
+            // payment only
+            amount,
+            destination: Destination(AccountIdType(destination)),
+            signing_pub_key: signing_pub_key
+                .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
+                .unwrap_or_default(),
             txn_signature: Default::default(),
         }
     }
@@ -192,7 +259,7 @@ impl SignerListSet {
         Self {
             account: Account(AccountIdType(account)),
             transaction_type: TransactionTypeCode::SignerListSet.into(),
-            fee: Fee(AmountType(fee)),
+            fee: Fee(AmountType::Drops(fee)),
             sequence: Sequence(UInt32Type(nonce)),
             // https://xrpl.org/use-tickets.html
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
@@ -344,7 +411,7 @@ mod tests {
             .extend_from_slice(&SignerQuorum(UInt32Type(signer_quorum)).binary_serialize(true)); // SignerQuorum
         expected_buf
             .extend_from_slice(&TicketSequence(UInt32Type(ticket_number)).binary_serialize(true)); // ticket_number
-        expected_buf.extend_from_slice(&Fee(AmountType(fee)).binary_serialize(true)); // Fee
+        expected_buf.extend_from_slice(&Fee(AmountType::Drops(fee)).binary_serialize(true)); // Fee
         expected_buf.extend_from_slice(
             &SigningPubKey(BlobType(signing_pub_key.to_vec())).binary_serialize(true),
         ); // SigningPubKey

@@ -1,8 +1,13 @@
 #![cfg(test)]
 
+use std::ops::Mul;
 use std::process::Command;
 
-use xrpl_codec::transaction::PaymentWithDestinationTag;
+use xrpl_codec::field::Amount;
+use xrpl_codec::transaction::{PaymentAltCurrency, PaymentWithDestinationTag};
+use xrpl_codec::types::{
+    AccountIdType, AmountType, CurrencyCodeType, IssuedAmountType, IssuedValueType,
+};
 use xrpl_codec::{
     traits::BinarySerialize,
     transaction::{Payment, SignerListSet},
@@ -79,6 +84,233 @@ fn serialize_payment_tx() {
         Sequence: 1,
         TicketSequence: 1,
         Amount: '5000000',
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_with_signature = payment.binary_serialize(false);
+    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
+}
+
+#[test]
+fn serialize_payment_alt_tx() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    // AST token info
+    let issuer = [3_u8; 20];
+    let token_symbol = b"AST";
+    let token_amount = 5; // 5 AST
+    let issued_amount = IssuedAmountType::from_issued_value(
+        IssuedValueType::from_mantissa_exponent(token_amount, 0).unwrap(),
+        CurrencyCodeType::Standard(token_symbol.clone()),
+        AccountIdType(issuer),
+    )
+    .unwrap();
+    let amount = Amount(AmountType::Issued(issued_amount));
+    let nonce = 1_u32;
+    let ticket_number = 1_u32;
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+    let mut payment = PaymentAltCurrency::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        ticket_number,
+        fee,
+        source_tag,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '5',
+            currency: 'AST',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+
+    // with signature
+    payment.attach_signature([7_u8; 65]);
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '5',
+            currency: 'AST',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_with_signature = payment.binary_serialize(false);
+    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
+}
+
+#[test]
+fn serialize_payment_alt_tx_decimal_amount() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    // AST token info
+    let issuer = [3_u8; 20];
+    let token_symbol = b"AST";
+    let token_amount = 3.14; // 3.14 AST
+    let issued_amount = IssuedAmountType::from_issued_value(
+        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2)
+            .unwrap(),
+        CurrencyCodeType::Standard(token_symbol.clone()),
+        AccountIdType(issuer),
+    )
+    .unwrap();
+    let amount = Amount(AmountType::Issued(issued_amount));
+    let nonce = 1_u32;
+    let ticket_number = 1_u32;
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+    let mut payment = PaymentAltCurrency::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        ticket_number,
+        fee,
+        source_tag,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '3.14',
+            currency: 'AST',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+
+    // with signature
+    payment.attach_signature([7_u8; 65]);
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '3.14',
+            currency: 'AST',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_with_signature = payment.binary_serialize(false);
+    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
+}
+
+#[test]
+fn serialize_payment_alt_tx_non_standard_currency_code() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    // AST token info
+    let issuer = [3_u8; 20];
+    let token_symbol = [5_u8; 20];
+    let token_amount = 3.14; // 3.14 AST
+    let issued_amount = IssuedAmountType::from_issued_value(
+        IssuedValueType::from_mantissa_exponent(token_amount.mul(100_f64).round() as i64, -2)
+            .unwrap(),
+        CurrencyCodeType::NonStandard(token_symbol),
+        AccountIdType(issuer),
+    )
+    .unwrap();
+    let amount = Amount(AmountType::Issued(issued_amount));
+    let nonce = 1_u32;
+    let ticket_number = 1_u32;
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+    let mut payment = PaymentAltCurrency::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        ticket_number,
+        fee,
+        source_tag,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '3.14',
+            currency: '0505050505050505050505050505050505050505',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+
+    // with signature
+    payment.attach_signature([7_u8; 65]);
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        SourceTag: 38887387,
+        Sequence: 1,
+        TicketSequence: 1,
+        Amount: {
+            value: '3.14',
+            currency: '0505050505050505050505050505050505050505',
+            issuer: 'rGvdqXNwMbSwRiubF4PhhVqzhkiaTDPgU'
+        },
         Fee: '1000',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
         TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',

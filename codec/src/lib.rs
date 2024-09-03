@@ -6,6 +6,7 @@ pub use alloc::vec::Vec;
 #[cfg(test)]
 pub use std::vec::Vec;
 
+mod error;
 pub mod field;
 pub mod traits;
 pub mod transaction;
