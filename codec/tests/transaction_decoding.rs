@@ -4,7 +4,7 @@ use std::ops::Mul;
 use std::process::Command;
 
 use xrpl_codec::field::Amount;
-use xrpl_codec::transaction::{PaymentAltCurrency, PaymentWithDestinationTag};
+use xrpl_codec::transaction::{NFTokenCreateOffer, PaymentAltCurrency, PaymentWithDestinationTag};
 use xrpl_codec::types::{
     AccountIdType, AmountType, CurrencyCodeType, IssuedAmountType, IssuedValueType,
 };
@@ -730,4 +730,65 @@ fn decode_SignerListSet_tx_empty_signer_entries() {
         encoded_with_signature.as_slice(),
         expected_signer_list_set_json,
     );
+}
+
+#[test]
+fn serialize_NFTokenCreateOffer_tx() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    let nftoken_id = [3_u8; 32];
+    let amount = 0_u64; // 0 XRP
+    let sequence = 0_u32;
+    let ticket_number = 1_u32;
+    let fee = 1_000; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let source_tag = 38_887_387_u32;
+    let mut payment = NFTokenCreateOffer::new(
+        account,
+        destination,
+        nftoken_id,
+        amount,
+        sequence,
+        ticket_number,
+        fee,
+        source_tag,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'NFTokenCreateOffer',
+        Flags: 1,
+        SourceTag: 38887387,
+        Sequence: 0,
+        TicketSequence: 1,
+        NFTokenID: '0303030303030303030303030303030303030303030303030303030303030303',
+        Amount: '0',
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+
+    // with signature
+    payment.attach_signature([7_u8; 65]);
+    let expected_payment_json = r"{
+        TransactionType: 'NFTokenCreateOffer',
+        Flags: 1,
+        SourceTag: 38887387,
+        Sequence: 0,
+        TicketSequence: 1,
+        NFTokenID: '0303030303030303030303030303030303030303030303030303030303030303',
+        Amount: '0',
+        Fee: '1000',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        TxnSignature: '0707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_with_signature = payment.binary_serialize(false);
+    println!("{:?}", hex::encode(encoded_with_signature.clone()));
+    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
 }
