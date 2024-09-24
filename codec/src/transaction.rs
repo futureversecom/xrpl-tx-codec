@@ -1,6 +1,7 @@
 //! XRPL transaction types
 use xrpl_codec_utils::Transaction;
 
+use crate::types::Hash256Type;
 use crate::{
     field::*,
     traits::{BinarySerialize, CodecField, CodecToFields},
@@ -290,6 +291,78 @@ impl SignerListSet {
     }
 }
 
+/// NFTokenCreateOffer tx
+#[derive(Transaction, Debug)]
+pub struct NFTokenCreateOffer {
+    /// common tx fields
+    account: Account,
+    transaction_type: TransactionType,
+    fee: Fee,
+    sequence: Sequence,
+    ticket_sequence: TicketSequence,
+    flags: Flags,
+    source_tag: SourceTag,
+    /// NFTokenCreateOffer only
+    amount: Amount,
+    destination: Destination,
+    nftoken_id: NFTokenID,
+    /// set when signing
+    signing_pub_key: SigningPubKey,
+    txn_signature: TxnSignature,
+}
+
+impl NFTokenCreateOffer {
+    /// Create a new NFTokenCreateOffer transaction
+    ///
+    /// Applies the global signing flags (see https://xrpl.org/transaction-common-fields.html#global-flags)
+    ///
+    /// - `account` the sender's address
+    /// - `destination` the address to accept this offer
+    /// - `nftoken_id` the token id of the NFT
+    /// - `amount` the sell amount of NFT in XRP
+    /// - `sequence` the XRPL 'Sequence' # of `account`
+    /// - `ticket_sequence` the XRPL 'TicketSequence' # to use with the `account`
+    /// - `fee` the max XRP fee in drops
+    /// - `signing_pub_key`
+    /// - `source_tag` futureverse source tag
+    pub fn new(
+        account: [u8; 20],
+        destination: [u8; 20],
+        nftoken_id: [u8; 32],
+        amount: u64,
+        sequence: u32,
+        ticket_sequence: u32,
+        fee: u64,
+        source_tag: u32,
+        signing_pub_key: Option<[u8; 33]>,
+    ) -> Self {
+        Self {
+            account: Account(AccountIdType(account)),
+            transaction_type: TransactionTypeCode::NFTokenCreateOffer.into(),
+            fee: Fee(AmountType::Drops(fee)),
+            sequence: Sequence(UInt32Type(sequence)),
+            // https://xrpl.org/use-tickets.html
+            ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
+            // https://xrpl.org/docs/references/protocol/transactions/types/nftokencreateoffer#nftokencreateoffer-flags
+            // only supports sell offers for now
+            flags: Flags(UInt32Type(0x00000001_u32)),
+            source_tag: SourceTag(UInt32Type(source_tag)),
+            // NFTokenCreateOffer only
+            amount: Amount(AmountType::Drops(amount)),
+            destination: Destination(AccountIdType(destination)),
+            nftoken_id: NFTokenID(Hash256Type(nftoken_id)),
+            signing_pub_key: signing_pub_key
+                .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
+                .unwrap_or_default(),
+            txn_signature: Default::default(),
+        }
+    }
+    /// Attach a signature to the transaction
+    pub fn attach_signature(&mut self, signature: [u8; 65]) {
+        self.txn_signature = TxnSignature(BlobType(signature.to_vec()));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -455,6 +528,44 @@ mod tests {
         );
 
         for chunk in payment.to_canonical_fields().chunks(2) {
+            match chunk {
+                &[f1, f2] => {
+                    assert!(
+                        f1.type_code() < f2.type_code()
+                            || f1.type_code() == f2.type_code()
+                                && f1.field_code() <= f2.field_code()
+                    );
+                }
+                _ => continue,
+            }
+        }
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_NFTokenCreateOffer_canonical_field_order() {
+        let account = [1_u8; 20];
+        let destination = [2_u8; 20];
+        let nf_token_id = [3_u8; 32];
+        let amount = 0_u64; // 0 XRP
+        let sequence = 0_u32;
+        let ticket_number = 1_u32;
+        let fee = 1_000; // 1000 drops
+        let signing_pub_key = [1_u8; 33];
+        let source_tag = 38_887_387_u32;
+        let nft_offer = NFTokenCreateOffer::new(
+            account,
+            destination,
+            nf_token_id,
+            amount,
+            sequence,
+            ticket_number,
+            fee,
+            source_tag,
+            Some(signing_pub_key),
+        );
+
+        for chunk in nft_offer.to_canonical_fields().chunks(2) {
             match chunk {
                 &[f1, f2] => {
                     assert!(
