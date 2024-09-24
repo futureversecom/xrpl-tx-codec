@@ -3,6 +3,7 @@
 
 use xrpl_codec_utils::Field;
 
+use crate::types::Hash256Type;
 use crate::{
     traits::{BinarySerialize, CodecField},
     types::{
@@ -66,6 +67,12 @@ pub struct SignerEntry(pub SignerEntryType);
 
 #[derive(Field, Debug, Clone)]
 pub struct SignerEntries(pub STArrayType<SignerEntry>);
+
+#[derive(Field, Debug, Clone)]
+pub struct NFTokenID(pub Hash256Type);
+
+#[derive(Field, Debug, Clone)]
+pub struct NFTokenSellOffer(pub Hash256Type);
 
 impl<T: CodecField> BinarySerialize for T {
     fn binary_serialize_to(&self, buf: &mut Vec<u8>, for_signing: bool) {
