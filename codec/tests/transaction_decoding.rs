@@ -743,7 +743,7 @@ fn serialize_NFTokenCreateOffer_tx() {
     let fee = 1_000; // 1000 drops
     let signing_pub_key = [1_u8; 33];
     let source_tag = 38_887_387_u32;
-    let mut payment = NFTokenCreateOffer::new(
+    let mut nftoken_create_offer = NFTokenCreateOffer::new(
         account,
         destination,
         nftoken_id,
@@ -755,7 +755,7 @@ fn serialize_NFTokenCreateOffer_tx() {
         Some(signing_pub_key),
     );
 
-    let expected_payment_json = r"{
+    let expected_offer_json = r"{
         TransactionType: 'NFTokenCreateOffer',
         Flags: 1,
         SourceTag: 38887387,
@@ -768,13 +768,13 @@ fn serialize_NFTokenCreateOffer_tx() {
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
         Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
     }";
-    let encoded_no_signature = payment.binary_serialize(true);
+    let encoded_no_signature = nftoken_create_offer.binary_serialize(true);
 
-    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+    assert_decodes(encoded_no_signature.as_slice(), expected_offer_json);
 
     // with signature
-    payment.attach_signature([7_u8; 65]);
-    let expected_payment_json = r"{
+    nftoken_create_offer.attach_signature([7_u8; 65]);
+    let expected_offer_json = r"{
         TransactionType: 'NFTokenCreateOffer',
         Flags: 1,
         SourceTag: 38887387,
@@ -788,7 +788,6 @@ fn serialize_NFTokenCreateOffer_tx() {
         Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
         Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
     }";
-    let encoded_with_signature = payment.binary_serialize(false);
-    println!("{:?}", hex::encode(encoded_with_signature.clone()));
-    assert_decodes(encoded_with_signature.as_slice(), expected_payment_json);
+    let encoded_with_signature = nftoken_create_offer.binary_serialize(false);
+    assert_decodes(encoded_with_signature.as_slice(), expected_offer_json);
 }
