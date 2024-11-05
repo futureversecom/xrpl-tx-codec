@@ -373,7 +373,7 @@ pub struct NFTokenAcceptOffer {
     sequence: Sequence,
     ticket_sequence: TicketSequence,
     source_tag: SourceTag,
-    /// NFTokenCreateOffer only
+    /// NFTokenAcceptOffer only
     nftoken_sell_offer: NFTokenSellOffer,
     /// set when signing
     signing_pub_key: SigningPubKey,
@@ -409,7 +409,7 @@ impl NFTokenAcceptOffer {
             // https://xrpl.org/use-tickets.html
             ticket_sequence: TicketSequence(UInt32Type(ticket_sequence)),
             source_tag: SourceTag(UInt32Type(source_tag)),
-            // NFTokenCreateOffer only
+            // NFTokenAcceptOffer only
             nftoken_sell_offer: NFTokenSellOffer(Hash256Type(nftoken_sell_offer)),
             signing_pub_key: signing_pub_key
                 .map(|pk| SigningPubKey(BlobType(pk.to_vec())))
