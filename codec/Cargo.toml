@@ -12,4 +12,4 @@ sha2 = { version = "0.10", default-features = false }
 [dev-dependencies]
 hex = "*"
 hex-literal = "0.3"
-xrpl-rust = { git = "https://github.com/sephynox/xrpl-rust", branch = "develop" }
+xrpl-rust = { git = "https://github.com/sephynox/xrpl-rust", branch = "dev" }
