@@ -12,7 +12,7 @@ use xrpl_codec::types::{
 };
 use xrpl_codec::{
     traits::BinarySerialize,
-    transaction::{Payment, SignerListSet},
+    transaction::{Payment, PaymentEssentialFields, SignerListSet},
 };
 
 // Assert `encoded` input decodes to `expected` JSON format (whitespace will be removed)
@@ -473,6 +473,38 @@ fn serialize_payment_zero_values() {
         SourceTag: 38887387,
         Sequence: 0,
         TicketSequence: 0,
+        Amount: '0',
+        Fee: '0',
+        SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
+        Account: 'raJ1Aqkhf19P7cyUc33MMVAzgvHPvtNFC',
+        Destination: 'rBcktgVfNjHmxNAQDEE66ztz4qZkdngdm'
+    }";
+    let encoded_no_signature = payment.binary_serialize(true);
+
+    assert_decodes(encoded_no_signature.as_slice(), expected_payment_json);
+}
+
+#[test]
+fn serialize_payment_required_fields_only() {
+    let account = [1_u8; 20];
+    let destination = [2_u8; 20];
+    let amount = 0; // 5 XRP
+    let nonce = 0_u32;
+    let fee = 0; // 1000 drops
+    let signing_pub_key = [1_u8; 33];
+    let payment = PaymentEssentialFields::new(
+        account,
+        destination,
+        amount,
+        nonce,
+        fee,
+        Some(signing_pub_key),
+    );
+
+    let expected_payment_json = r"{
+        TransactionType: 'Payment',
+        Flags: 2147483648,
+        Sequence: 0,
         Amount: '0',
         Fee: '0',
         SigningPubKey: '010101010101010101010101010101010101010101010101010101010101010101',
