@@ -15,13 +15,11 @@ use xrpl_codec::{
 
 // Assert `encoded` input decodes to `expected` JSON format (whitespace will be removed)
 fn assert_decodes(encoded: &[u8], expected: &str) {
-    println!("{:?}", encoded);
     let js_test = format!(
         "const util = require('util'); const xrpl = require(\"xrpl\"); \
         console.log(util.inspect(xrpl.decode('{}'), false, null, false));",
         hex::encode(&encoded)
     );
-    println!("{}", js_test);
     let result = Command::new("node")
         .env("NODE_PATH", "./tests/node_modules")
         .arg(format!("--eval={}", js_test))
